@@ -10,7 +10,7 @@ public interface IUnitOfWork : IDisposable
     /// <summary>
     /// The repository that handles joined database tables.
     /// </summary>
-    public IUserRepository UserRepository { get; }
+    public IAdRepository AddRepository { get; }
 
     /// <summary>
     /// Applies the operation. Called after a Repository function is called.

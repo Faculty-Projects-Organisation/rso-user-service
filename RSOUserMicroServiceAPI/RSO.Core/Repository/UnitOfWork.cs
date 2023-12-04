@@ -1,4 +1,4 @@
-﻿using RSO.Core.UserModels;
+﻿using RSO.Core.AdModels;
 using RSO.Core.Repository;
 
 namespace UserServiceRSO.Repository;
@@ -8,25 +8,25 @@ namespace UserServiceRSO.Repository;
 /// </summary>
 public class UnitOfWork : IUnitOfWork
 {
-    private readonly UserServicesRSOContext _userServicesRSOContext;
+    private readonly AdServicesRSOContext _adServicesRSOContext;
     private bool disposed;
 
     /// <summary>
     /// Constructor for the <see cref="UnitOfWork"/> class.
     /// </summary>
-    /// <param name="userServicesRSOContext ">The <see cref="userServicesRSOContext "/> context for the database access.</param>
+    /// <param name="adServicesRSOContext ">The <see cref="userServicesRSOContext "/> context for the database access.</param>
     /// <param name="userRepository">IUserRepository instance.</param>
-    public UnitOfWork(UserServicesRSOContext userServicesRSOContext, IUserRepository userRepository)
+    public UnitOfWork(AdServicesRSOContext adServicesRSOContext, IAdRepository adrepository)
     {
-        _userServicesRSOContext = userServicesRSOContext;
-        UserRepository = userRepository;
+        _adServicesRSOContext = adServicesRSOContext;
+        AddRepository = adrepository;
     }
 
     ///<inheritdoc/>
-    public IUserRepository UserRepository { get; }
+    public IAdRepository AddRepository { get; }
 
     ///<inheritdoc/>
-    public async Task<int> SaveChangesAsync() => await _userServicesRSOContext.SaveChangesAsync();
+    public async Task<int> SaveChangesAsync() => await _adServicesRSOContext.SaveChangesAsync();
 
     /// <summary>
     /// Implements the <see cref="IDisposable"/> interface. Called when we'd like to the dispose the <see cref="UnitOfWork"/> object.
@@ -38,7 +38,7 @@ public class UnitOfWork : IUnitOfWork
         {
             if (disposing)
             {
-                _userServicesRSOContext.Dispose();
+                _adServicesRSOContext.Dispose();
             }
         }
         disposed = true;
