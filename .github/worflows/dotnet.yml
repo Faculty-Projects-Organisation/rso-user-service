@@ -1,0 +1,29 @@
+# CircleCI configuration for ASP.NET Core 7 project
+version: 2.1
+
+jobs:
+  build-and-push:
+    docker:
+      # Use the official Microsoft Docker image for .NET 7 SDK
+      - image: mcr.microsoft.com/dotnet/sdk:7.0
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.6
+      - run:
+          name: Build Project
+          command: dotnet build --configuration Release
+      - run:
+          name: Build Docker Image
+          command: docker build -t muchacho3alex/rsouserservice:latest .
+      - run:
+          name: Push Docker Image to Docker Hub
+          command: |
+            echo "$DOCKERHUB_ACCESS_TOKEN" | docker login --username $DOCKERHUB_USERNAME --password-stdin
+            docker push muchacho3alex/rsouserservice:latest
+
+workflows:
+  build-and-deploy:
+    jobs:
+      - build-and-push
