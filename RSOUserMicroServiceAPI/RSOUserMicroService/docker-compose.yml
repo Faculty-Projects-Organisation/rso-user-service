@@ -1,0 +1,26 @@
+version: '3.7'
+
+services:
+  db:
+    image: postgres:15.1-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: "usersdb"
+      POSTGRES_USER: "shanji"
+      POSTGRES_PASSWORD: "#12234!ERFWFRWRflkdsjf3rWRW$"
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shanji"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  db_data:
+    # This named volume will store the PostgreSQL data
