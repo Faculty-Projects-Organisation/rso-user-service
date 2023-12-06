@@ -24,6 +24,6 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         context: .
-        file: ./RSOUserMicroServiceAPI/RSOUserMicroService/Dockerfile
+        file: ./Dockerfile
         push: true
         tags: muchacho3alex/rsouserservice:latest
