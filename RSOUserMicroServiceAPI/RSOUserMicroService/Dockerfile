@@ -4,7 +4,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
-ENV ASPNETCORE_ENVIRONMENT=Release
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 ARG BUILD_CONFIGURATION=Release
@@ -23,4 +22,5 @@ RUN dotnet publish "./RSOUserMicroService.csproj" -c $BUILD_CONFIGURATION -o /ap
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "RSOUserMicroService.dll"]
+ENV ASPNETCORE_ENVIRONMENT Release
+ENTRYPOINT ["dotnet", "RSOUserMicroService.dll", "--environment=Release"]
