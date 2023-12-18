@@ -9,7 +9,7 @@ FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["RSOUserMicroService/RSOUserMicroService.csproj", "RSOUserMicroService/"]
-COPY ["../RSO.Core/RSO.Core.csproj", "RSO.Core/"]
+COPY ["RSO.Core/RSO.Core.csproj", "RSO.Core/"]
 RUN dotnet restore "./RSOUserMicroService/./RSOUserMicroService.csproj"
 COPY . .
 WORKDIR "/src/RSOUserMicroService"

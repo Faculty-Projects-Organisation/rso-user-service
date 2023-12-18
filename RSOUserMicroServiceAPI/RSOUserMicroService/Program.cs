@@ -83,25 +83,25 @@ builder.Services.AddSwaggerGen(swagger =>
             Url = new Uri("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
         }
     });
-    swagger.AddSecurityDefinition("jwt_auth", new OpenApiSecurityScheme()
-    {
-        Description = "Basic authorization with JWT token.",
-        Name = "Bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey
-    });
-    swagger.AddSecurityRequirement(new OpenApiSecurityRequirement()
-            {
-                {new OpenApiSecurityScheme()
-                {
-                    Reference = new OpenApiReference()
-                    {
-                        Id="jwt_auth",
-                        Type = ReferenceType.SecurityScheme
-                    }
-                },Array.Empty<string>() },
-            });
+    //swagger.AddSecurityDefinition("jwt_auth", new OpenApiSecurityScheme()
+    //{
+    //    Description = "Basic authorization with JWT token.",
+    //    Name = "Bearer",
+    //    BearerFormat = "JWT",
+    //    In = ParameterLocation.Header,
+    //    Type = SecuritySchemeType.ApiKey
+    //});
+    //swagger.AddSecurityRequirement(new OpenApiSecurityRequirement()
+    //        {
+    //            {new OpenApiSecurityScheme()
+    //            {
+    //                Reference = new OpenApiReference()
+    //                {
+    //                    Id="jwt_auth",
+    //                    Type = ReferenceType.SecurityScheme
+    //                }
+    //            },Array.Empty<string>() },
+    //        });
 });
 
 // APP.
