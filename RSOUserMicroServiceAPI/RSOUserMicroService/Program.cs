@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using NSwag;
 using RSO.Core.BL;
 using RSO.Core.Configurations;
 using RSO.Core.UserModels;
@@ -34,7 +34,6 @@ builder.Services.AddLazyCache();
 // Add unit of work & repositories.
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IUserRepository, UserRepository>(); //In each microservice a different repository/serice is inlcuded. If more tables are needed add more repos related to the microservice.
-                                                               // Logic
 builder.Services.AddScoped<IUserLogic, UserLogic>(); //In each microservice a different repository/serice is inlcuded.
 
 //JWT
@@ -60,59 +59,42 @@ builder.Services
             .GetSection("JwtSecurityTokenConfiguration").
             Get<JwtSecurityTokenConfiguration>().Audience
     });
-
 //Carter
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddCarter();
-
 // Add services to the container.
 builder.Services.AddAuthorization();
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(swagger =>
-{
-    swagger.SwaggerDoc("v1", new OpenApiInfo()
-    {
-        Description = "User microservice for E-commerce app.",
-        Title = "RSO project.",
-        Version = "v1",
-        Contact = new OpenApiContact()
-        {
-            Name = "Aleksander Kovac & Urban Poljsak",
-            Url = new Uri("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-        }
-    });
-    //swagger.AddSecurityDefinition("jwt_auth", new OpenApiSecurityScheme()
-    //{
-    //    Description = "Basic authorization with JWT token.",
-    //    Name = "Bearer",
-    //    BearerFormat = "JWT",
-    //    In = ParameterLocation.Header,
-    //    Type = SecuritySchemeType.ApiKey
-    //});
-    //swagger.AddSecurityRequirement(new OpenApiSecurityRequirement()
-    //        {
-    //            {new OpenApiSecurityScheme()
-    //            {
-    //                Reference = new OpenApiReference()
-    //                {
-    //                    Id="jwt_auth",
-    //                    Type = ReferenceType.SecurityScheme
-    //                }
-    //            },Array.Empty<string>() },
-    //        });
-});
 
+builder.Services.AddOpenApiDocument(options =>
+{
+    options.PostProcess = document =>
+    {
+        document.Info = new()
+        {
+            Version = "v1",
+            Title = "User microservices API",
+            Description = "User microservices API endpoints",
+            TermsOfService = "Lol.",
+            Contact = new()
+            {
+                Name = "Aleksander Kovac & Urban Poljsak",
+                Url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+            }
+        };
+    };
+    options.UseControllerSummaryAsTagDescription = true;
+});
 // APP.
 var app = builder.Build();
-
 // Carter
 app.MapCarter();
-
-app.UseSwagger();
-app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "API"));
-
+app.UseOpenApi();
+app.UseSwaggerUi3(options =>
+{
+    options.Path = "/openapi";
+    options.TagsSorter = "Users";
+});
 app.UseAuthentication();
 app.UseAuthorization();
 

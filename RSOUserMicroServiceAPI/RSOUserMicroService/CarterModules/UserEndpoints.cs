@@ -13,15 +13,15 @@ public class UserEndpoints : ICarterModule
     {
         // Login and register options.
         app.MapPost("/login", Login).WithName(nameof(Login)).
-            Produces(StatusCodes.Status200OK).
+            Produces(StatusCodes.Status200OK).WithDisplayName("Lol").
             Produces(StatusCodes.Status400BadRequest).
-            AllowAnonymous();
+            AllowAnonymous().WithTags("Users");
 
         app.MapPost("/register", Register).WithName(nameof(Register)).
             Produces(StatusCodes.Status201Created).
             Produces(StatusCodes.Status400BadRequest).
-            Produces(StatusCodes.Status404NotFound).
-            AllowAnonymous();
+            Produces(StatusCodes.Status404NotFound).WithDescription("Ne najdem").
+            AllowAnonymous().WithTags("Users");
 
         // Group for /api/user endpoinds.
         var group = app.MapGroup("/api/user/");
@@ -30,7 +30,7 @@ public class UserEndpoints : ICarterModule
         group.MapGet("{id}", GetUserById).WithName(nameof(GetUserById)).
             Produces(StatusCodes.Status200OK).
             Produces(StatusCodes.Status400BadRequest).
-            Produces(StatusCodes.Status401Unauthorized);
+            Produces(StatusCodes.Status401Unauthorized).WithTags("Users");
     }
 
     /// <summary>
