@@ -3,11 +3,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using NSwag;
 using RSO.Core.BL;
 using RSO.Core.Configurations;
-using RSO.Core.UserModels;
 using RSO.Core.Repository;
+using RSO.Core.UserModels;
 using System.Text;
 using UserServiceRSO.Repository;
 
