@@ -1,6 +1,7 @@
 ﻿using Carter;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using RSO.Core.BL;
 using RSO.Core.BL.LogicModels;
 using RSO.Core.UserModels;
@@ -11,6 +12,9 @@ public class UserEndpoints : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
+        app.MapHealthChecks("/api/user/health").WithTags("Health");
+       
+
         // Login and register options.
         app.MapPost("/login", Login).WithName(nameof(Login)).
             Produces(StatusCodes.Status200OK).WithDisplayName("Lol").
@@ -31,23 +35,25 @@ public class UserEndpoints : ICarterModule
             Produces(StatusCodes.Status200OK).
             Produces(StatusCodes.Status400BadRequest).
             Produces(StatusCodes.Status401Unauthorized).WithTags("Users");
+
+        //group.MapGet("/health", HealthCheck).WithName(nameof(HealthCheck)).
+        //   Produces(StatusCodes.Status200OK).WithTags("Health");
     }
 
     /// <summary>
     /// Performs login and gets the JWT token.
     /// </summary>
-    /// <param name="emailOrUsername"></param>
-    /// <param name="password"></param>
+    /// <param name="loginCredentials">The login credentials.</param>
     /// <param name="userLogic"></param>
     /// <returns>A JWT token as a string.</returns>
     [AllowAnonymous]
-    public static async Task<Results<Ok<string>, BadRequest<string>>> Login(string emailOrUsername, string password, IUserLogic userLogic)
+    public static async Task<Results<Ok<string>, BadRequest<string>>> Login([FromBody]LoginCredentials loginCredentials,IUserLogic userLogic)
     {
-        if (string.IsNullOrEmpty(emailOrUsername) || string.IsNullOrEmpty(password))
-            return TypedResults.BadRequest("Username (or email) and password cannot be null");
+        if (string.IsNullOrEmpty(loginCredentials.EmailorUsername) || string.IsNullOrEmpty(loginCredentials.Password))
+            return TypedResults.BadRequest("Username (or email) and password cannot be empty.");
         else
         {
-            var user = await userLogic.GetUserByUsernameOrEmailAndPasswordAsync(emailOrUsername, password);
+            var user = await userLogic.GetUserByUsernameOrEmailAndPasswordAsync(loginCredentials.EmailorUsername, loginCredentials.Password);
             var jwt = userLogic.GetJwtToken(user);
             return jwt is null
                 ? TypedResults.BadRequest("The user with the specified username/email and password doesn't exist.")
@@ -61,10 +67,10 @@ public class UserEndpoints : ICarterModule
     /// <param name="newUser">Data for the new user that is going to be created.</param>
     /// <param name="userLogic">DI for B(usiness) L(logic) layer.</param>
     /// <returns>A JWT token as a string.</returns>
-    public static async Task<Results<Created<string>, NotFound<string>, BadRequest<string>>> Register( User newUser, IUserLogic userLogic)
+    public static async Task<Results<Created<string>, NotFound<string>, BadRequest<string>>> Register(User newUser, IUserLogic userLogic)
     {
-        //SKIP VALIDATION (IMPLEMENT IT WHEN TIME REMAINS
-
+        //SKIP VALIDATION (IMPLEMENT IT IF TIME REMAINS)
+        newUser.UserId = 0;
         newUser.UserCity = await userLogic.GetCityFromZipCodeAsync(newUser.UserZipCode);
         newUser.UserZipCode = string.IsNullOrEmpty(newUser.UserCity) ? null : newUser.UserZipCode;
 
@@ -100,4 +106,18 @@ public class UserEndpoints : ICarterModule
 
         return TypedResults.Ok(userData);
     }
+
+    //[AllowAnonymous]
+    //public static async Task<Results<Ok<string>, BadRequest<string>>> HealthCheck()
+    //{
+    //    try
+    //    {
+    //           var healthCheckResult = await HealthCheckService.CheckHealthAsync();
+    //        return healthCheckResult.CheckStatus == HealthCheckResult.Healthy ? TypedResults.Ok("Healthy") : TypedResults.BadRequest("Unhealthy");
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        return TypedResults.BadRequest(ex.Message);
+    //    }
+    //}
 }

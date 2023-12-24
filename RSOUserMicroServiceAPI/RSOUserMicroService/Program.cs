@@ -9,6 +9,7 @@ using RSO.Core.Repository;
 using RSO.Core.UserModels;
 using System.Text;
 using UserServiceRSO.Repository;
+using RSO.Core.Health;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,11 @@ builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<J
 //Database settings
 builder.Services.AddDbContext<UserServicesRSOContext>(options =>
 options.UseNpgsql(builder.Configuration.GetConnectionString("UserServicesRSOdB")));
+
+// Razor pages
+builder.Services.AddRazorPages();
+
+builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("Database").AddCheck<ExternalAPICheck>("LavbicAPI");
 
 //Lazy cache
 builder.Services.AddLazyCache();
@@ -86,6 +92,9 @@ builder.Services.AddOpenApiDocument(options =>
 });
 // APP.
 var app = builder.Build();
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
 // Carter
 app.MapCarter();
 app.UseOpenApi();
@@ -96,5 +105,11 @@ app.UseSwaggerUi3(options =>
 });
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapRazorPages();
+    endpoints.MapControllers();
+});
 
 app.Run();

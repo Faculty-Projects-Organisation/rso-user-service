@@ -54,27 +54,4 @@ public interface IGenericRepository<T> where T : class
     /// </summary>
     /// <param name="entity">The entity to be updated to the database.</param>
     public Task UpdateAsync(T entity);
-
-    /// <summary>
-    /// Deletes the type by its ID property in the database.
-    /// </summary>
-    /// <param name="id">The ID of the type.</param>
-    //public Task DeleteAsync(int id);
-
-    /// <summary>
-    /// Deletes a new entity of a database type.
-    /// </summary>
-    /// <param name="entity">The entity to be deleted to the database.</param>
-    //public Task Delete(T entity);
-
-    /// <summary>
-    /// Deletes multiple, but not all records in the database.
-    /// </summary>
-    /// <param name="entities">The entities the are going to be deleted.</param>
-    //public Task DeleteMultipleAsync(IEnumerable<T> entities);
-
-    /// <summary>
-    /// Deletes all the records of a database type.
-    /// </summary>
-    //public Task DeleteAllAsync();
 }
