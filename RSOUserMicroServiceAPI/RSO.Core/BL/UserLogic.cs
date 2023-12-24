@@ -80,7 +80,9 @@ public class UserLogic : IUserLogic
         try
         {
             return await _unitOfWork.UserRepository.GetByIdAsync(id);
-        }catch (Exception ex) { 
+        }
+        catch (Exception ex)
+        {
             // Log
             return null;
         }
@@ -94,7 +96,9 @@ public class UserLogic : IUserLogic
             if (await _unitOfWork.UserRepository.UserExistsByUserNameOrEmailOrPasswordAsync(emailOrUsername, password))
                 return await _unitOfWork.UserRepository.GetByUsernameOrEmailAndPasswordAsync(emailOrUsername, password);
             return null;
-        }catch (Exception ex) {
+        }
+        catch (Exception ex)
+        {
             // Log with serilog/seq when needed.
 
             return null;

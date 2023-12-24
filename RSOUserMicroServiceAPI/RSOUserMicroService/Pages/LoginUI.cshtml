@@ -1,0 +1,49 @@
+﻿@page "/LoginUI"
+@model RSOUserMicroService.Pages.LoginUIModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Login";
+}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <h1 style="color: white; text-align: center;">Login</h1>
+
+        <label for="thing">Username:</label>
+        <input type="text" id="username" name="username" required class="form-control"><br><br>
+
+        <label for="category">Password:</label>
+        <input type="password" id="password" name="password" required class="form-control"><br><br>
+
+        <button id="login" class="btn btn-primary">Login</button>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // Attach click event handler to the login button
+        $("#login").click(function () {
+            const url = '/login'; // Assuming that the login API is hosted on the same server
+            const username = $("#username").val();
+            const password = $("#password").val();
+
+            // Perform AJAX POST request using jQuery
+            $.ajax({
+                url: url,
+                async: true,
+                type: 'POST',
+                contentType: 'application/json', // Set content type to JSON
+                data: JSON.stringify({
+                    EmailorUsername: username,
+                    Password: password
+                }),
+                success: function (data) {
+                    console.log(data);
+                    alert("Success, see console for JWT");
+                },
+                error: function (error) {
+                    console.error('Error:', error);
+                }
+            });
+        });
+    });
+</script>
