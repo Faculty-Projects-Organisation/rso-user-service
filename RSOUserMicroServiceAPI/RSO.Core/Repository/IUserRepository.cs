@@ -28,4 +28,18 @@ public interface IUserRepository : IGenericRepository<User>
     /// <param name="password">The password of the user.</param>
     /// <returns> The corresponding user if one exists in the database.</returns>
     public Task<User> GetByUsernameOrEmailAndPasswordAsync(string emailOrUsername, string password);
+
+    /// <summary>
+    /// Deletes the user.
+    /// </summary>
+    /// <param name="user">User.</param>
+    /// <returns></returns>
+    public Task DeleteUserAsync(User user);
+
+    /// <summary>
+    /// Updates the username of the user.
+    /// </summary>
+    /// <param name="user">User.</param>
+    /// <returns></returns>
+    public Task UpdateUsersNameAsync(User user);
 }

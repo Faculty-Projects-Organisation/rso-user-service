@@ -36,6 +36,12 @@ public class UserLogic : IUserLogic
     }
 
     ///<inheritdoc/>
+    public async Task DeleteUserAsync(User user)
+    {
+        await _unitOfWork.UserRepository.DeleteUserAsync(user);
+    }
+
+    ///<inheritdoc/>
     public async Task<string> GetCityFromZipCodeAsync(string userZipCode)
     {
         return await _appcache.GetOrAddAsync($"city_from_zip_code_{userZipCode}", async () =>
@@ -120,5 +126,33 @@ public class UserLogic : IUserLogic
 
             return null;
         }
+    }
+
+    ///<inheritdoc/>
+    public async Task<bool> UsernameOrEmailAlreadyTakenAsync(string userName, string email)
+    {
+        try
+        {
+            return await _unitOfWork.UserRepository.UsernameOrEmailAlreadyTakenAsync(userName, email);
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+    }
+
+    ///<inheritdoc/>
+    public async Task<bool> UpdateUserAsync(User user)
+    {
+        try
+        {
+            await _unitOfWork.UserRepository.UpdateUsersNameAsync(user);
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+
+        return true;
     }
 }

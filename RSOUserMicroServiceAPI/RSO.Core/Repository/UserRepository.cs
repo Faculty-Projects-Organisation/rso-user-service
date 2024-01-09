@@ -16,4 +16,10 @@ public class UserRepository : GenericRepository<User>, IUserRepository
 
     ///<inheritdoc/>
     public async Task<User> GetByUsernameOrEmailAndPasswordAsync(string emailOrUsername, string password) => await _context.User.Where(u => (u.UserName.Equals(emailOrUsername) || u.UserEmail.Equals(emailOrUsername)) && u.UserPassword.Equals(password)).FirstOrDefaultAsync();
+
+    ///<inheritdoc/>
+    public async Task DeleteUserAsync(User user) => await _context.User.Where(User => User.UserId == user.UserId).ExecuteDeleteAsync();
+
+    ///<inheritdoc/>
+    public async Task UpdateUsersNameAsync(User user) => await _context.User.Where(User => User.UserId == user.UserId).ExecuteUpdateAsync(users => users.SetProperty(u => u.UserName,user.UserName));
 }

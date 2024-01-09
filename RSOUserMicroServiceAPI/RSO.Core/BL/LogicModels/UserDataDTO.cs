@@ -10,7 +10,7 @@ public class UserDataDTO
     /// <summary>
     /// Get the neccessary data from the user.
     /// </summary>
-    /// <param name="user"></param>
+    /// <param name="user"><see cref=User""/> instance.</param>
     public UserDataDTO(User user)
     {
         Id = user.UserId;

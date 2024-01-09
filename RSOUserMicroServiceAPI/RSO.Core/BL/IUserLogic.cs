@@ -1,4 +1,5 @@
 ﻿using RSO.Core.UserModels;
+using System.Runtime.CompilerServices;
 
 namespace RSO.Core.BL;
 
@@ -7,6 +8,13 @@ namespace RSO.Core.BL;
 /// </summary>
 public interface IUserLogic
 {
+    /// <summary>
+    /// Deletes the user.
+    /// </summary>
+    /// <param name="user">The user we would like to delete.</param>
+    /// <returns>Throw error if it fails.</returns>
+    public Task DeleteUserAsync(User user);
+
     /// <summary>
     /// Gets the city name from the user zip code.
     /// </summary>
@@ -42,4 +50,20 @@ public interface IUserLogic
     /// <param name="newUser"></param>
     /// <returns>The same <see cref="User"/> object with and id.</returns>
     public Task<User> RegisterUserAsync(User newUser);
+
+    /// <summary>
+    /// Updates the user.
+    /// </summary>
+    /// <param name="user"><see cref="User"/> instance.</param>
+    /// <returns>True, if the username was successfully updated.</returns>
+    public Task<bool> UpdateUserAsync(User user);
+
+    /// <summary>
+    /// Checks if the user exists by username or email or password.
+    /// </summary>
+    /// <param name="userName">Username.</param>
+    /// <param name="email">The email of the user.</param>
+    /// <returns>True, if the username is already taken.</returns>
+    public Task<bool> UsernameOrEmailAlreadyTakenAsync(string userName, string email);
+
 }

@@ -1,5 +1,4 @@
 ﻿using Carter;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using RSO.Core.BL;
@@ -13,7 +12,6 @@ public class UserEndpoints : ICarterModule
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapHealthChecks("/api/user/health").WithTags("Health");
-       
 
         // Login and register options.
         app.MapPost("/login", Login).WithName(nameof(Login)).
@@ -33,8 +31,24 @@ public class UserEndpoints : ICarterModule
         // Methods for  /api/user/id endpoints.
         group.MapGet("{id}", GetUserById).WithName(nameof(GetUserById)).
             Produces(StatusCodes.Status200OK).
+            Produces(StatusCodes.Status400BadRequest).WithSummary("Bad request").
+            Produces(StatusCodes.Status401Unauthorized).WithTags("Users").WithDescription("Gets the user, specified by the id.");
+
+        //JWT
+        group.MapDelete("{id}", DeleteUserById).WithName(nameof(DeleteUserById)).
+            Produces(StatusCodes.Status204NoContent).
             Produces(StatusCodes.Status400BadRequest).
-            Produces(StatusCodes.Status401Unauthorized).WithTags("Users");
+            Produces(StatusCodes.Status401Unauthorized).
+            WithTags("Users").
+            WithDescription("Deletes the user specified by the user ID");
+
+        //JWT
+        group.MapPatch("{id}", UpdateUserNameById).WithName(nameof(UpdateUserNameById)).
+            Produces(StatusCodes.Status204NoContent).
+            Produces(StatusCodes.Status400BadRequest).
+            Produces(StatusCodes.Status401Unauthorized).
+            WithTags("Users").
+            WithDescription("Updates the user name of the user specified by the user ID");
 
         //group.MapGet("/health", HealthCheck).WithName(nameof(HealthCheck)).
         //   Produces(StatusCodes.Status200OK).WithTags("Health");
@@ -44,10 +58,9 @@ public class UserEndpoints : ICarterModule
     /// Performs login and gets the JWT token.
     /// </summary>
     /// <param name="loginCredentials">The login credentials.</param>
-    /// <param name="userLogic"></param>
+    /// <param name="userLogic"><see cref="IUserLogic"/> dependency injection.</param>
     /// <returns>A JWT token as a string.</returns>
-    [AllowAnonymous]
-    public static async Task<Results<Ok<string>, BadRequest<string>>> Login([FromBody]LoginCredentials loginCredentials,IUserLogic userLogic)
+    public static async Task<Results<Ok<string>, BadRequest<string>>> Login([FromBody] LoginCredentials loginCredentials, IUserLogic userLogic)
     {
         if (string.IsNullOrEmpty(loginCredentials.EmailorUsername) || string.IsNullOrEmpty(loginCredentials.Password))
             return TypedResults.BadRequest("Username (or email) and password cannot be empty.");
@@ -105,6 +118,52 @@ public class UserEndpoints : ICarterModule
         var userData = new UserDataDTO(user);
 
         return TypedResults.Ok(userData);
+    }
+
+    /// <summary>
+    /// Deletes the user by id.
+    /// </summary>
+    /// <param name="id">User id.</param>
+    /// <param name="userLogic"><see cref="IUserLogic"/> instance.</param>
+    /// <returns>Result of the Delete user by id request.</returns>
+    public static async Task<Results<NoContent, BadRequest<string>>> DeleteUserById(int id, IUserLogic userLogic)
+    {
+        var user = await userLogic.GetUserByIdAsync(id);
+
+        if (user is null)
+            return TypedResults.BadRequest("User with the specified doesn't exist.");
+
+        await userLogic.DeleteUserAsync(user);
+
+        return TypedResults.NoContent();
+    }
+
+    /// <summary>
+    /// Updates the user name by id.
+    /// </summary>
+    /// <param name="id">Id of the user.</param>
+    /// <param name="userName">The new name of the user.</param>
+    /// <param name="userLogic"><see cref="IUserLogic"/> instance.</param>
+    /// <returns></returns>
+    public static async Task<Results<Ok<UserDataDTO>, BadRequest<string>,Conflict<string>>> UpdateUserNameById(int id, string userName, IUserLogic userLogic)
+    {
+        var user = await userLogic.GetUserByIdAsync(id);
+
+        if (user is null)
+            return TypedResults.BadRequest("User with the specified doesn't exist.");
+
+        if (string.IsNullOrEmpty(userName))
+            return TypedResults.BadRequest("User name cannot be empty.");
+
+        if (await userLogic.UsernameOrEmailAlreadyTakenAsync(userName, user.UserEmail))
+            return TypedResults.Conflict("User name is already taken.");
+
+        user.UserName = userName;
+        var userData = new UserDataDTO(user);
+        if (await userLogic.UpdateUserAsync(user))
+            return TypedResults.Ok(userData);
+
+        return TypedResults.BadRequest("Failed to update the user name.");
     }
 
     //[AllowAnonymous]
