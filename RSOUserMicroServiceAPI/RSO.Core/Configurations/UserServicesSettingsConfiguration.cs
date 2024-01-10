@@ -5,5 +5,5 @@ public class UserServicesSettingsConfiguration
     /// <summary>
     /// Example.
     /// </summary>
-    public string PasswordSalt { get; init; }
+    public string PasswordSalt { get; set; }
 }

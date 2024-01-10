@@ -70,7 +70,7 @@ builder.Services.AddCarter();
 // Add services to the container.
 builder.Services.AddAuthorization();
 builder.Services.AddEndpointsApiExplorer();
-
+//Open API / Swagger
 builder.Services.AddOpenApiDocument(options =>
 {
     options.PostProcess = document =>
@@ -97,6 +97,7 @@ app.UseStaticFiles();
 app.UseRouting();
 // Carter
 app.MapCarter();
+// OPENAPI SWAGGER
 app.UseOpenApi();
 app.UseSwaggerUi3(options =>
 {
