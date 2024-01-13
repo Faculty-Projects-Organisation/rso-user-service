@@ -53,7 +53,9 @@
                 }),
                 success: function (data) {
                     console.log(data);
-                    alert("Success, see console for response");
+                    localStorage.setItem('jwtToken', data);
+                    const decodedToken = decodeJwt(data);
+                    localStorage.setItem('decodedToken', JSON.stringify(decodedToken));
                 },
                 error: function (error) {
                     console.error('Error:', error);

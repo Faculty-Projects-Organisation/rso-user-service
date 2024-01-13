@@ -29,7 +29,7 @@
         <div style="padding: 23pt 30pt 0 30pt; display: flex; flex-direction: column;">
             <button id="updateUser" class="btn btn-primary" onclick="update()" style="margin-bottom: 25pt;">Update</button>
             <button id="logout" class="btn btn-danger" onclick="logOut()" style="margin-bottom: 25pt;">Log out</button>
-            <button id="deleteUser" class="btn btn-danger">Delete</button>
+            <button id="deleteUser" class="btn btn-danger" onclick="delete()">Delete</button>
         </div>
 
     </div>
@@ -148,40 +148,58 @@
                 }
             });
         }
+
         function update() {
-            var userId = $('#userId').val();
             var username = $('#username').val();
             var email = $('#email').val();
             var address = $('#address').val();
             var zipcode = $('#zipcode').val();
+            console.log(zipcode);
             var password = $('#exampleInputPassword1').val();
+            const tokenString = localStorage.getItem('decodedToken');
+            const token = JSON.parse(tokenString);
             var user = {
-                "UserId": userId,
+                "UserId": token.sub,
                 "UserName": username,
                 "UserEmail": email,
-                "UserPassword": password
-                "UserZipCode ": zipcode,
+                "UserPassword": password,
+                "UserZipCode": zipcode,
                 "UserAddress": address,
             };
             $.ajax({
-                url: '/api/user/' + userId + "/update",
+                url: '/api/user/update',
                 method: 'PATCH',
                 contentType: 'application/json',
                 data: JSON.stringify(user),
-                success: function (user) {
-                    console.log(user);
+                success: function (data) {
+                    console.log(data);
                     // Overwrite JWT token
 
-
+                    localStorage.setItem('jwtToken', data);
+                    const decodedToken = decodeJwt(data);
+                    localStorage.setItem('decodedToken', JSON.stringify(decodedToken));
+                    window.location.href = "/UserUI";
 
                     // value of ad.thing to the element with id thing
                     document.getElementById("form").hidden = false;
                     document.getElementById("show").hidden = true;
-
-                    $('#username').val(user.userName);
-                    $('#email').val(user.userEmail);
-                    $('#address').val(user.userLocation);
-                    $('#zipcode').val(user.userZipcode);
+                },
+            });
+        }
+        
+        function delete (){
+            const tokenString = localStorage.getItem('decodedToken');
+            const token = JSON.parse(tokenString);
+            $.ajax({
+                url: '/api/user/' + token.sub,
+                method: 'DELETE',
+                success: function (data) {
+                    console.log(data);
+                    localStorage.removeItem('jwtToken');
+                    localStorage.removeItem('decodedToken');
+                    window.location.href = "/RegisterUI";
+                },
+            });
         }
     </script>
 

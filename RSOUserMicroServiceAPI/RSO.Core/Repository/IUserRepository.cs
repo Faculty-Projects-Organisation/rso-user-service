@@ -61,7 +61,7 @@ public interface IUserRepository : IGenericRepository<User>
     public Task<int> GetEmailOccurrenceAsync(string userEmail);
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="userName"></param>
     /// <returns></returns>

@@ -1,4 +1,5 @@
-﻿using RSO.Core.UserModels;
+﻿using RSO.Core.AdModels;
+using RSO.Core.UserModels;
 
 namespace RSO.Core.BL;
 
@@ -44,6 +45,13 @@ public interface IUserLogic
     public Task<User> GetUserByUsernameOrEmailAndPasswordAsync(string emailOrUsername, string password);
 
     /// <summary>
+    /// Get ads from a certain user.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    public Task<List<Ad>> GetUsersAddsAsync(int userId);
+
+    /// <summary>
     /// Checks if the email is unique.
     /// </summary>
     /// <param name="userEmail"><see cref="User.UserEmail"/></param>
@@ -85,5 +93,4 @@ public interface IUserLogic
     /// <param name="email">The email of the user.</param>
     /// <returns>True, if the username is already taken.</returns>
     public Task<bool> UsernameOrEmailAlreadyTakenAsync(string userName, string email);
-
 }

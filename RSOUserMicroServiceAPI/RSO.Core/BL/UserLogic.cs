@@ -5,6 +5,7 @@ using RestSharp;
 using RSO.Core.BL.LogicModels;
 using RSO.Core.Configurations;
 using RSO.Core.UserModels;
+using RSO.Core.AdModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
@@ -174,13 +175,12 @@ public class UserLogic : IUserLogic
         return true;
     }
 
-    
     ///<inheritdoc/>
     public async Task<bool> IsEmailUniqueAsync(string userEmail)
     {
         try
         {
-            return await _unitOfWork.UserRepository.GetEmailOccurrenceAsync(userEmail) == 0;
+            return await _unitOfWork.UserRepository.GetEmailOccurrenceAsync(userEmail) <= 1;
         }
         catch (Exception ex)
         {
@@ -193,11 +193,22 @@ public class UserLogic : IUserLogic
     {
         try
         {
-            return await _unitOfWork.UserRepository.GetUserNameOcurrenceAsync(userName) == 0;
+            return await _unitOfWork.UserRepository.GetUserNameOcurrenceAsync(userName) <=1;
         }
         catch (Exception ex)
         {
             return false;
         }
+    }
+
+    public async Task<List<Ad>> GetUsersAddsAsync(int userId)
+    {
+        var restClient = new RestClient($"https://localhost:7265/api/ad/all");
+        var restRequest = new RestRequest();
+        var response = restClient.ExecuteAsync(restRequest);
+        response.Wait();
+        var restResponse = await response;
+
+        return JsonConvert.DeserializeObject<List<Ad>>(restResponse.Content).Where(ad => ad.UserId == userId).ToList();
     }
 }

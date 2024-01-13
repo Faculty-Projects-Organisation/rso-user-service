@@ -5,7 +5,7 @@ using UserServiceRSO.Repository;
 namespace RSO.Core.Repository;
 
 /// <summary>
-/// Implementation of <see cref="IUserRepository"/>.    
+/// Implementation of <see cref="IUserRepository"/>.
 /// </summary>
 public class UserRepository : GenericRepository<User>, IUserRepository
 {
@@ -39,5 +39,4 @@ public class UserRepository : GenericRepository<User>, IUserRepository
 
     ///<inheritdoc/>
     public async Task<int> GetUserNameOcurrenceAsync(string userName) => await _context.User.Where(u => u.UserName.Equals(userName)).CountAsync();
-
 }
