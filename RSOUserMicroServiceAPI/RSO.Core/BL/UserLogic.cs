@@ -22,6 +22,7 @@ public class UserLogic : IUserLogic
     private readonly IAppCache _appcache;
     private readonly IUnitOfWork _unitOfWork;
     private readonly JwtSecurityTokenConfiguration _jwtConfiguration;
+    private readonly CrossEndpointsFunctionalityConfiguration _crossEndpointsFunctionalityConfiguration;
 
     /// <summary>
     /// Initializes the <see cref="UserLogic"/> class.
@@ -29,11 +30,13 @@ public class UserLogic : IUserLogic
     /// <param name="appcache"><see cref="IAppCache"/> instance.</param>
     /// <param name="unitOfWork"><see cref="IUnitOfWork"/> instance.</param>
     /// <param name="jwtConfiguration"><see cref="JwtSecurityTokenConfiguration"/> dependency injection.</param>
-    public UserLogic(IAppCache appcache, IUnitOfWork unitOfWork, JwtSecurityTokenConfiguration jwtConfiguration)
+    /// <param name="crossEndpointsFunctionalityConfiguration"><see cref="CrossEndpointsFunctionalityConfiguration"/> DI.</param>
+    public UserLogic(IAppCache appcache, IUnitOfWork unitOfWork, JwtSecurityTokenConfiguration jwtConfiguration, CrossEndpointsFunctionalityConfiguration crossEndpointsFunctionalityConfiguration)
     {
         _appcache = appcache;
         _unitOfWork = unitOfWork;
         _jwtConfiguration = jwtConfiguration;
+        _crossEndpointsFunctionalityConfiguration = crossEndpointsFunctionalityConfiguration;
     }
 
     ///<inheritdoc/>
@@ -201,9 +204,10 @@ public class UserLogic : IUserLogic
         }
     }
 
+    ///<inheritdoc/>
     public async Task<List<Ad>> GetUsersAddsAsync(int userId)
     {
-        var restClient = new RestClient($"https://localhost:7265/api/ad/all");
+        var restClient = new RestClient(_crossEndpointsFunctionalityConfiguration.GetAdsByUserIdEndpoint);
         var restRequest = new RestRequest();
         var response = restClient.ExecuteAsync(restRequest);
         response.Wait();

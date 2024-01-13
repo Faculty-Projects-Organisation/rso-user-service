@@ -1,12 +1,9 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+namespace RSOUserMicroService.Pages.Shared;
 
-namespace RSOUserMicroService.Pages.Shared
+public class _LayoutModel : PageModel
 {
-    public class _LayoutModel : PageModel
+    public void OnGet()
     {
-        public void OnGet()
-        {
-        }
     }
 }

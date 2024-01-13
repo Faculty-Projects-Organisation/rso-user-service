@@ -2,5 +2,6 @@
 
 public class CrossEndpointsFunctionalityConfiguration
 {
-    public string DeleteAdsByUserIdEndpoint { get; set; }
+    public string DeleteAdsByUserIdEndpoint { get; init; }
+    public string GetAdsByUserIdEndpoint { get; init; }
 }

@@ -26,6 +26,12 @@ builder.Services.AddOptions<JwtSecurityTokenConfiguration>()
 // Explicitly register the settings objects by delegating to the IOptions object.
 builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<JwtSecurityTokenConfiguration>>().Value);
 
+// Register the IOptions object.
+builder.Services.AddOptions<CrossEndpointsFunctionalityConfiguration>()
+    .BindConfiguration("JwtSecurityTokenConfiguration");
+// Explicitly register the settings objects by delegating to the IOptions object.
+builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<CrossEndpointsFunctionalityConfiguration>>().Value);
+
 //Database settings
 builder.Services.AddDbContext<UserServicesRSOContext>(options =>
 options.UseNpgsql(builder.Configuration.GetConnectionString("UserServicesRSOdB")));
