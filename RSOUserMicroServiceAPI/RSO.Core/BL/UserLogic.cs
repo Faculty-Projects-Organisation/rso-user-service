@@ -5,6 +5,7 @@ using RestSharp;
 using RSO.Core.BL.LogicModels;
 using RSO.Core.Configurations;
 using RSO.Core.UserModels;
+using RSO.Core.AdModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
@@ -21,6 +22,7 @@ public class UserLogic : IUserLogic
     private readonly IAppCache _appcache;
     private readonly IUnitOfWork _unitOfWork;
     private readonly JwtSecurityTokenConfiguration _jwtConfiguration;
+    private readonly CrossEndpointsFunctionalityConfiguration _crossEndpointsFunctionalityConfiguration;
 
     /// <summary>
     /// Initializes the <see cref="UserLogic"/> class.
@@ -28,11 +30,13 @@ public class UserLogic : IUserLogic
     /// <param name="appcache"><see cref="IAppCache"/> instance.</param>
     /// <param name="unitOfWork"><see cref="IUnitOfWork"/> instance.</param>
     /// <param name="jwtConfiguration"><see cref="JwtSecurityTokenConfiguration"/> dependency injection.</param>
-    public UserLogic(IAppCache appcache, IUnitOfWork unitOfWork, JwtSecurityTokenConfiguration jwtConfiguration)
+    /// <param name="crossEndpointsFunctionalityConfiguration"><see cref="CrossEndpointsFunctionalityConfiguration"/> DI.</param>
+    public UserLogic(IAppCache appcache, IUnitOfWork unitOfWork, JwtSecurityTokenConfiguration jwtConfiguration, CrossEndpointsFunctionalityConfiguration crossEndpointsFunctionalityConfiguration)
     {
         _appcache = appcache;
         _unitOfWork = unitOfWork;
         _jwtConfiguration = jwtConfiguration;
+        _crossEndpointsFunctionalityConfiguration = crossEndpointsFunctionalityConfiguration;
     }
 
     ///<inheritdoc/>
@@ -45,7 +49,7 @@ public class UserLogic : IUserLogic
     public async Task<string> GetCityFromZipCodeAsync(string userZipCode)
     {
         return await _appcache.GetOrAddAsync($"city_from_zip_code_{userZipCode}", async () =>
-         {
+        {
              var restRequest = new RestRequest();
              var restClient = new RestClient($"https://api.lavbic.net/kraji/{userZipCode}");
              var response = restClient.ExecuteAsync(restRequest);
@@ -53,7 +57,7 @@ public class UserLogic : IUserLogic
              var restResponse = await response;
 
              return restResponse.StatusCode.Equals(HttpStatusCode.OK) ? JsonConvert.DeserializeObject<CityData>(restResponse.Content).City : null;
-         });
+        });
     }
 
     ///<inheritdoc/>
@@ -63,6 +67,10 @@ public class UserLogic : IUserLogic
             new(JwtRegisteredClaimNames.Sub,existingUser.UserId.ToString()),
             new(JwtRegisteredClaimNames.Email,existingUser.UserEmail),
             new(JwtRegisteredClaimNames.AuthTime, DateTime.UtcNow.ToString()),
+            new("RegisteredOn",existingUser.RegisteredOn.ToString()),
+            new("UserZipCode",existingUser.UserZipCode),
+            new("UserCity",existingUser.UserCity),
+            new("UserAddress",existingUser.UserAddress)
         };
 
         var signingCredentials = new SigningCredentials(
@@ -154,5 +162,57 @@ public class UserLogic : IUserLogic
         }
 
         return true;
+    }
+
+    ///<inheritdoc/>
+    public async Task<bool> UpdateUserDataAsync(User userData)
+    {
+        try
+        {
+            await _unitOfWork.UserRepository.UpdateUserDataAsync(userData);
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    ///<inheritdoc/>
+    public async Task<bool> IsEmailUniqueAsync(string userEmail)
+    {
+        try
+        {
+            return await _unitOfWork.UserRepository.GetEmailOccurrenceAsync(userEmail) <= 1;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+    }
+
+    ///<inheritdoc/>
+    public async Task<bool> IsUserNameUniqueAsync(string userName)
+    {
+        try
+        {
+            return await _unitOfWork.UserRepository.GetUserNameOcurrenceAsync(userName) <=1;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+    }
+
+    ///<inheritdoc/>
+    public async Task<List<Ad>> GetUsersAddsAsync(int userId)
+    {
+        var restClient = new RestClient(_crossEndpointsFunctionalityConfiguration.GetAdsByUserIdEndpoint);
+        var restRequest = new RestRequest();
+        var response = restClient.ExecuteAsync(restRequest);
+        response.Wait();
+        var restResponse = await response;
+
+        return JsonConvert.DeserializeObject<List<Ad>>(restResponse.Content).Where(ad => ad.UserId == userId).ToList();
     }
 }

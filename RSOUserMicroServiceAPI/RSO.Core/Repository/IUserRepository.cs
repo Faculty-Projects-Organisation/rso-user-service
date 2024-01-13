@@ -3,6 +3,9 @@ using UserServiceRSO.Repository;
 
 namespace RSO.Core.Repository;
 
+/// <summary>
+/// Handles the communication with the User database.
+/// </summary>
 public interface IUserRepository : IGenericRepository<User>
 {
     /// <summary>
@@ -42,4 +45,25 @@ public interface IUserRepository : IGenericRepository<User>
     /// <param name="user">User.</param>
     /// <returns></returns>
     public Task UpdateUsersNameAsync(User user);
+
+    /// <summary>
+    /// Updates the user data.
+    /// </summary>
+    /// <param name="userData">The new user data.</param>
+    /// <returns></returns>
+    public Task UpdateUserDataAsync(User userData);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="userEmail"></param>
+    /// <returns></returns>
+    public Task<int> GetEmailOccurrenceAsync(string userEmail);
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name="userName"></param>
+    /// <returns></returns>
+    public Task<int> GetUserNameOcurrenceAsync(string userName);
 }

@@ -23,4 +23,4 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENV ASPNETCORE_ENVIRONMENT Release
-ENTRYPOINT ["dotnet", "RSOUserMicroService.dll", "--environment=Release"]
+ENTRYPOINT ["dotnet", "RSOUserMicroService.dll"]

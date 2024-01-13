@@ -50,6 +50,15 @@ public class UserEndpoints : ICarterModule
             WithTags("Users").
             WithDescription("Updates the user name of the user specified by the user ID");
 
+        group.MapPatch("/update", UpdateUser).WithName(nameof(UpdateUser)).
+             Produces(StatusCodes.Status200OK)
+            .WithDescription("Ok response.")
+            .Produces(StatusCodes.Status400BadRequest)
+            .WithDescription("Validation error")
+            .Produces(StatusCodes.Status409Conflict)
+            .WithDescription("More than one user exist with this email or username.")
+            .WithTags("Users");
+
         //group.MapGet("/health", HealthCheck).WithName(nameof(HealthCheck)).
         //   Produces(StatusCodes.Status200OK).WithTags("Health");
     }
@@ -63,7 +72,9 @@ public class UserEndpoints : ICarterModule
     public static async Task<Results<Ok<string>, BadRequest<string>>> Login([FromBody] LoginCredentials loginCredentials, IUserLogic userLogic)
     {
         if (string.IsNullOrEmpty(loginCredentials.EmailorUsername) || string.IsNullOrEmpty(loginCredentials.Password))
+        {
             return TypedResults.BadRequest("Username (or email) and password cannot be empty.");
+        }
         else
         {
             var user = await userLogic.GetUserByUsernameOrEmailAndPasswordAsync(loginCredentials.EmailorUsername, loginCredentials.Password);
@@ -80,9 +91,19 @@ public class UserEndpoints : ICarterModule
     /// <param name="newUser">Data for the new user that is going to be created.</param>
     /// <param name="userLogic">DI for B(usiness) L(logic) layer.</param>
     /// <returns>A JWT token as a string.</returns>
-    public static async Task<Results<Created<string>, NotFound<string>, BadRequest<string>>> Register(User newUser, IUserLogic userLogic)
+    public static async Task<Results<Created<string>, NotFound<string>, BadRequest<string>, Conflict<string>>> Register(User newUser, IUserLogic userLogic)
     {
-        //SKIP VALIDATION (IMPLEMENT IT IF TIME REMAINS)
+        //Use FLUENT_VALIDATION LIB NEXT TIME.
+
+        if (string.IsNullOrEmpty(newUser.UserName))
+            return TypedResults.BadRequest("User name or email cannot be empty.");
+        if (await userLogic.UsernameOrEmailAlreadyTakenAsync(newUser.UserName, newUser.UserEmail))
+            return TypedResults.Conflict("User or email name is already taken.");
+        if (string.IsNullOrEmpty(newUser.UserAddress) || string.IsNullOrEmpty(newUser.UserZipCode))
+            return TypedResults.BadRequest("User address or zip code. cannot be empty.");
+        if (newUser.UserZipCode?.Length != 4)
+            return TypedResults.BadRequest(string.Format("User zip code must be 4 digits long. {0} is {1} digits long.", newUser.UserZipCode, newUser.UserZipCode?.Length));
+
         newUser.UserId = 0;
         newUser.UserCity = await userLogic.GetCityFromZipCodeAsync(newUser.UserZipCode);
         newUser.UserZipCode = string.IsNullOrEmpty(newUser.UserCity) ? null : newUser.UserZipCode;
@@ -109,13 +130,25 @@ public class UserEndpoints : ICarterModule
     /// <param name="id">Id of the user.</param>
     /// <param name="userLogic"><see cref="IUserLogic"/> instance.</param>
     /// <returns>User data for the user.</returns>
-    public static async Task<Results<Ok<UserDataDTO>, BadRequest<string>>> GetUserById(int id, IUserLogic userLogic)
+    public static async Task<Results<Ok<UserWithAdsDataDTO>, Ok<UserDataWithoutAdsDTO>, BadRequest<string>>> GetUserById(int id, IUserLogic userLogic)
     {
         var user = await userLogic.GetUserByIdAsync(id);
 
         if (user is null)
             return TypedResults.BadRequest("User with the specified doesn't exist.");
-        var userData = new UserDataDTO(user);
+
+        var ads = await userLogic.GetUsersAddsAsync(id);
+        if (!ads.Any())
+        {
+            var userWithoutAds = new UserDataWithoutAdsDTO(user);
+            return TypedResults.Ok(userWithoutAds);
+        }
+
+        var userData = new UserWithAdsDataDTO(user, ads);
+
+
+        //Get all the ads from that user.
+
 
         return TypedResults.Ok(userData);
     }
@@ -145,7 +178,7 @@ public class UserEndpoints : ICarterModule
     /// <param name="userName">The new name of the user.</param>
     /// <param name="userLogic"><see cref="IUserLogic"/> instance.</param>
     /// <returns></returns>
-    public static async Task<Results<Ok<UserDataDTO>, BadRequest<string>,Conflict<string>>> UpdateUserNameById(int id, string userName, IUserLogic userLogic)
+    public static async Task<Results<Ok<UserDataDTO>, BadRequest<string>, Conflict<string>>> UpdateUserNameById(int id, string userName, IUserLogic userLogic)
     {
         var user = await userLogic.GetUserByIdAsync(id);
 
@@ -164,6 +197,37 @@ public class UserEndpoints : ICarterModule
             return TypedResults.Ok(userData);
 
         return TypedResults.BadRequest("Failed to update the user name.");
+    }
+
+    /// <summary>
+    /// Updates the user data and returns a new JWT token.
+    /// </summary>
+    /// <param name="newUserData">New user data.</param>
+    /// <param name="userLogic"><see cref="UserLogic"/> DI.</param>
+    /// <returns><see cref="Results"/>.</returns>
+    public static async Task<Results<Ok<string>, BadRequest<string>, Conflict<string>>> UpdateUser(User newUserData, IUserLogic userLogic)
+    {
+        var existingUser = userLogic.GetUserByIdAsync(newUserData.UserId);
+        if (existingUser is null)
+            return TypedResults.BadRequest("User with the specified id doesn't exist.");
+        if (string.IsNullOrEmpty(newUserData.UserName))
+            return TypedResults.BadRequest("User name or email cannot be empty.");
+        if (!(await userLogic.IsUserNameUniqueAsync(newUserData.UserName)) || !(await userLogic.IsEmailUniqueAsync(newUserData.UserEmail)))
+            return TypedResults.Conflict("User or email name is already taken.");
+        if (string.IsNullOrEmpty(newUserData.UserAddress) || string.IsNullOrEmpty(newUserData.UserZipCode))
+            return TypedResults.BadRequest("User address or zip code. cannot be empty.");
+        if (newUserData.UserZipCode?.Length != 4)
+            return TypedResults.BadRequest(string.Format("User zip code must be 4 digits long. {0} is {1} digits long.", newUserData.UserZipCode, newUserData.UserZipCode?.Length));
+        newUserData.UserCity = await userLogic.GetCityFromZipCodeAsync(newUserData.UserZipCode);
+        var isUserUpdated = await userLogic.UpdateUserDataAsync(newUserData);
+        if (isUserUpdated)
+        {
+            var user = await userLogic.GetUserByUsernameOrEmailAndPasswordAsync(newUserData.UserEmail, newUserData.UserPassword);
+            var jwt = userLogic.GetJwtToken(user);
+            return string.IsNullOrEmpty(jwt) ? TypedResults.BadRequest("User has been successfully registered but failed to retrieve the JWT token.") : TypedResults.Ok(jwt);
+        }
+
+        return TypedResults.BadRequest("Failed to update the user.");
     }
 
     //[AllowAnonymous]

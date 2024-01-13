@@ -1,5 +1,5 @@
-﻿using RSO.Core.UserModels;
-using System.Runtime.CompilerServices;
+﻿using RSO.Core.AdModels;
+using RSO.Core.UserModels;
 
 namespace RSO.Core.BL;
 
@@ -45,6 +45,27 @@ public interface IUserLogic
     public Task<User> GetUserByUsernameOrEmailAndPasswordAsync(string emailOrUsername, string password);
 
     /// <summary>
+    /// Get ads from a certain user.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    public Task<List<Ad>> GetUsersAddsAsync(int userId);
+
+    /// <summary>
+    /// Checks if the email is unique.
+    /// </summary>
+    /// <param name="userEmail"><see cref="User.UserEmail"/></param>
+    /// <returns>True, if only one instance of the email is present.</returns>
+    public Task<bool> IsEmailUniqueAsync(string userEmail);
+
+    /// <summary>
+    /// Checks if the username is unique.
+    /// </summary>
+    /// <param name="userName"><see cref="User.UserName"/></param>
+    /// <returns>True, if only one instance of the username is present.</returns>
+    public Task<bool> IsUserNameUniqueAsync(string userName);
+
+    /// <summary>
     /// Implements user registration and insert the user.
     /// </summary>
     /// <param name="newUser"></param>
@@ -59,11 +80,17 @@ public interface IUserLogic
     public Task<bool> UpdateUserAsync(User user);
 
     /// <summary>
+    /// Updates the user data.
+    /// </summary>
+    /// <param name="userData">The new user data.</param>
+    /// <returns>True, if the update was successfull.</returns>
+    public Task<bool> UpdateUserDataAsync(User userData);
+
+    /// <summary>
     /// Checks if the user exists by username or email or password.
     /// </summary>
     /// <param name="userName">Username.</param>
     /// <param name="email">The email of the user.</param>
     /// <returns>True, if the username is already taken.</returns>
     public Task<bool> UsernameOrEmailAlreadyTakenAsync(string userName, string email);
-
 }
