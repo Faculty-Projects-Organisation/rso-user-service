@@ -45,7 +45,7 @@ public class UserLogic : IUserLogic
     public async Task<string> GetCityFromZipCodeAsync(string userZipCode)
     {
         return await _appcache.GetOrAddAsync($"city_from_zip_code_{userZipCode}", async () =>
-         {
+        {
              var restRequest = new RestRequest();
              var restClient = new RestClient($"https://api.lavbic.net/kraji/{userZipCode}");
              var response = restClient.ExecuteAsync(restRequest);
@@ -53,7 +53,7 @@ public class UserLogic : IUserLogic
              var restResponse = await response;
 
              return restResponse.StatusCode.Equals(HttpStatusCode.OK) ? JsonConvert.DeserializeObject<CityData>(restResponse.Content).City : null;
-         });
+        });
     }
 
     ///<inheritdoc/>
@@ -63,6 +63,10 @@ public class UserLogic : IUserLogic
             new(JwtRegisteredClaimNames.Sub,existingUser.UserId.ToString()),
             new(JwtRegisteredClaimNames.Email,existingUser.UserEmail),
             new(JwtRegisteredClaimNames.AuthTime, DateTime.UtcNow.ToString()),
+            new("RegisteredOn",existingUser.RegisteredOn.ToString()),
+            new("UserZipCode",existingUser.UserZipCode),
+            new("UserCity",existingUser.UserCity),
+            new("UserAddress",existingUser.UserAddress)
         };
 
         var signingCredentials = new SigningCredentials(
@@ -154,5 +158,46 @@ public class UserLogic : IUserLogic
         }
 
         return true;
+    }
+
+    ///<inheritdoc/>
+    public async Task<bool> UpdateUserDataAsync(User userData)
+    {
+        try
+        {
+            await _unitOfWork.UserRepository.UpdateUserDataAsync(userData);
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    
+    ///<inheritdoc/>
+    public async Task<bool> IsEmailUniqueAsync(string userEmail)
+    {
+        try
+        {
+            return await _unitOfWork.UserRepository.GetEmailOccurrenceAsync(userEmail) == 0;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+    }
+
+    ///<inheritdoc/>
+    public async Task<bool> IsUserNameUniqueAsync(string userName)
+    {
+        try
+        {
+            return await _unitOfWork.UserRepository.GetUserNameOcurrenceAsync(userName) == 0;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
     }
 }

@@ -20,6 +20,11 @@
 
 <script>
     $(document).ready(function () {
+        const tokenString = localStorage.getItem('decodedToken');
+        const token = JSON.parse(tokenString);
+        if (token) {
+            window.location.href = "/UserUI";
+        }
         // Attach click event handler to the login button
         $("#login").click(function () {
             const url = '/login'; // Assuming that the login API is hosted on the same server
@@ -38,7 +43,10 @@
                 }),
                 success: function (data) {
                     console.log(data);
-                    alert("Success, see console for JWT");
+                    localStorage.setItem('jwtToken', data);
+                    const decodedToken = decodeJwt(data);
+                    localStorage.setItem('decodedToken', JSON.stringify(decodedToken));
+                    window.location.href = "/UserUI";
                 },
                 error: function (error) {
                     console.error('Error:', error);

@@ -6,40 +6,183 @@
 }
 <div style="padding: 20pt 70pt 0 70pt;">
 
-    <label for="userId" style="color: white;">User ID:</label>
-    <input type="text" id="userId" />
-    <button id="getUser" class="btn btn-primary">Get User</button>
+    <div id="form" style="padding: 20pt 70pt 0 70pt; display: flex;" hidden>
 
-    <h1 id="username" style="color: white;"></h1>
-    <h3 id="email" style="color: white;"></h3>
-    <h3 id="address" style="color: white;"></h3>
-    <h3 id="zipcode" style="color: white;"></h3>
+        <div style="width: 20vw;">
+            <label for="username" class="form-label" style="color: rgb(231, 231, 231);">Username</label>
+            <input id="username" type="text" class="form-control" id="username">
+
+            <label for="email" class="form-label" style="color: rgb(231, 231, 231);">Email</label>
+            <input id="email" type="email" class="form-control" id="email">
+
+            <label for="address" class="form-label" style="color: rgb(231, 231, 231);">Address</label>
+            <input id="address" type="text" class="form-control" id="address">
+
+            <label for="zipcode" class="form-label" style="color: rgb(231, 231, 231);">Zipcode</label>
+            <input id="zipcode" type="text" class="form-control" id="zipcode">
+
+            <label for="exampleInputPassword1" class="form-label" style="color: rgb(231, 231, 231);">Password</label>
+            <input id="exampleInputPassword1" type="password" class="form-control" id="exampleInputPassword1">
+        </div>
+
+
+        <div style="padding: 23pt 30pt 0 30pt; display: flex; flex-direction: column;">
+            <button id="updateUser" class="btn btn-primary" onclick="update()" style="margin-bottom: 25pt;">Update</button>
+            <button id="logout" class="btn btn-danger" onclick="logOut()" style="margin-bottom: 25pt;">Log out</button>
+            <button id="deleteUser" class="btn btn-danger">Delete</button>
+        </div>
+
+    </div>
+
+  
+
+    <div id="adsContainer" style="padding: 23pt 30pt 0 30pt;"></div>
+
+    <script>
+       
+           /* $.ajax({
+                url: '/api/user/' + userId,
+                method: 'GET',
+                success: function (data) {
+                    user = data.user;
+                    ads = data.ads;
+
+                    console.log(user);
+
+                    // if logged user's profile
+                    if (currentUserID == 3) {
+                        document.getElementById("form").hidden = false;
+                        document.getElementById("show").hidden = true;
+
+                        $('#username').val(user.userName);
+                        $('#email').val(user.userEmail);
+                        $('#address').val(user.userLocation);
+                        $('#zipcode').val(user.userZipcode);
+
+                    } else {
+                        document.getElementById("form").hidden = true;
+                        document.getElementById("show").hidden = false;
+
+                        $('#usernameT').text(user.userName);
+                        $('#emailT').text("Email: " + user.userEmail);
+                        $('#addressT').text("Address: " + user.userLocation);
+                        $('#zipcodeT').text("Zipcode: " + user.userZipcode);
+                    }
+
+                    console.log(ads);
+                    var adsContainer = $('#adsContainer');
+
+                    ads.forEach(function (ad) {
+                        var adElement = `
+                                            <div style="background-color: #fff;
+                                                    border-radius: 5px;
+                                                    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+                                                    margin: 15px 0;
+                                                    padding: 15px;
+                                                    position: relative;
+                                                    overflow: hidden;">
+                                                <h3>${ad.thing}</h3>
+                                                <p style="margin: 0;">Cena: ${ad.price}&euro;</p>
+                                                <p style="margin: 0;">Kategorija: ${ad.category}</p>
+                                                <p>Objavljeno: ${ad.postTime}</p>
+                                            </div>
+                                        `;
+                        adsContainer.append(adElement);
+                    });
+                },
+                error: function () {
+                    console.log('Failed to fetch data.');
+                }
+            });
+        });*/
+    </script>
     <script>
         $(document).ready(function () {
+            const tokenString = localStorage.getItem('decodedToken');
+            const token = JSON.parse(tokenString);
+            if (token == null || token == undefined) {
+                window.location.href = "/LoginUI";
+            } else {
+                $("#email").val(token.email);
+                $("#zipcode").val(token.UserZipCode);
+                $("#address").val(token.UserAddress);
+
+                getUserData(token.sub);
+            }
+
+            // Attach click event handler to the login button
+
+
+
             $('#getUser').click(function () {
                 var userId = $('#userId').val();
-                $.ajax({
-                    url: '/api/user/' + userId,
-                    method: 'GET',
-                    success: function (user) {
-                        console.log(user);
-                        // value of ad.thing to the element with id thing
-                        $('#username').text(user.userName);
-                        $('#email').text("Email: " + user.userEmail);
-                        $('#address').text("Address: " + user.userLocation);
+                getUserData(userId);
 
-                    },
-                    error: function () {
-                        var errorElement = $('<div>').text('Failed to fetch user.');
-                        $('#username').empty();
-                        $('#email').empty();
-                        $('#address').empty();
-                        $('#zipcode').empty();
-                        $('#username').append(errorElement);
-                    }
-                });
             });
         });
+
+        function getUserData(userId) {
+            $.ajax({
+                url: '/api/user/' + userId,
+                method: 'GET',
+                success: function (user) {
+                    console.log(user);
+                    // value of ad.thing to the element with id thing
+                    document.getElementById("form").hidden = false;
+                    document.getElementById("show").hidden = true;
+
+                    $('#username').val(user.userName);
+                    $('#email').val(user.userEmail);
+                    $('#address').val(user.userLocation);
+                    $('#zipcode').val(user.userZipcode);
+
+
+                },
+                error: function () {
+                    var errorElement = $('<div>').text('Failed to fetch user.');
+                    $('#username').empty();
+                    $('#email').empty();
+                    $('#address').empty();
+                    $('#zipcode').empty();
+                    $('#username').append(errorElement);
+                }
+            });
+        }
+        function update() {
+            var userId = $('#userId').val();
+            var username = $('#username').val();
+            var email = $('#email').val();
+            var address = $('#address').val();
+            var zipcode = $('#zipcode').val();
+            var password = $('#exampleInputPassword1').val();
+            var user = {
+                "UserId": userId,
+                "UserName": username,
+                "UserEmail": email,
+                "UserPassword": password
+                "UserZipCode ": zipcode,
+                "UserAddress": address,
+            };
+            $.ajax({
+                url: '/api/user/' + userId + "/update",
+                method: 'PATCH',
+                contentType: 'application/json',
+                data: JSON.stringify(user),
+                success: function (user) {
+                    console.log(user);
+                    // Overwrite JWT token
+
+
+
+                    // value of ad.thing to the element with id thing
+                    document.getElementById("form").hidden = false;
+                    document.getElementById("show").hidden = true;
+
+                    $('#username').val(user.userName);
+                    $('#email').val(user.userEmail);
+                    $('#address').val(user.userLocation);
+                    $('#zipcode').val(user.userZipcode);
+        }
     </script>
 
 </div>

@@ -8,15 +8,15 @@ public class JwtSecurityTokenConfiguration
     /// <summary>
     /// JWT issuer.
     /// </summary>
-    public string Issuer { get; set; }
+    public string Issuer { get; init; }
 
     /// <summary>
     /// JWT audience.
     /// </summary>
-    public string Audience { get; set; }
+    public string Audience { get; init; }
 
     /// <summary>
     /// Key for signing the JWT.
     /// </summary>
-    public string SecretKey { get; set; }
+    public string SecretKey { get; init; }
 }

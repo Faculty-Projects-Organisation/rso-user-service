@@ -11,6 +11,7 @@ using System.Text;
 using UserServiceRSO.Repository;
 using RSO.Core.Health;
 
+#region BUILDER
 var builder = WebApplication.CreateBuilder(args);
 
 // Register the IOptions object.
@@ -42,28 +43,24 @@ builder.Services.AddScoped<IUserRepository, UserRepository>(); //In each microse
 builder.Services.AddScoped<IUserLogic, UserLogic>(); //In each microservice a different repository/serice is inlcuded.
 
 //JWT
+var jwtSecurityConfig = builder.Configuration.GetSection("JwtSecurityTokenConfiguration").Get<JwtSecurityTokenConfiguration>();
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(o => o.TokenValidationParameters = new()
+    .AddJwtBearer(options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        // Read from appsettings.json ...WARNING VALUES MUST BE THE SAME IN ALL IMPLEMENTATIONS.
+        options.TokenValidationParameters = new()
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
 
-        // BETTER, CLEANER WAY?
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration
-            .GetSection("JwtSecurityTokenConfiguration").
-            Get<JwtSecurityTokenConfiguration>().SecretKey)),
-        ValidIssuer = builder.Configuration
-            .GetSection("JwtSecurityTokenConfiguration").
-            Get<JwtSecurityTokenConfiguration>().Issuer,
-        ValidAudience = builder.Configuration
-            .GetSection("JwtSecurityTokenConfiguration").
-            Get<JwtSecurityTokenConfiguration>().Audience
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecurityConfig.SecretKey)),
+            ValidIssuer = jwtSecurityConfig.Issuer,
+            ValidAudience = jwtSecurityConfig.Audience
+        };
     });
+
 //Carter
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddCarter();
@@ -90,7 +87,10 @@ builder.Services.AddOpenApiDocument(options =>
     };
     options.UseControllerSummaryAsTagDescription = true;
 });
-// APP.
+
+#endregion
+
+#region APP
 var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -114,3 +114,4 @@ app.UseEndpoints(endpoints =>
 });
 
 app.Run();
+#endregion
