@@ -28,12 +28,7 @@ public class UserRepository : GenericRepository<User>, IUserRepository
 
     ///<inheritdoc/>
     public async Task UpdateUserDataAsync(User userData) => await _context.User.Where(User => User.UserId == userData.UserId).ExecuteUpdateAsync(users => users.SetProperty(u => u.UserEmail, userData.UserEmail)
-                                                                                                                                                                    .SetProperty(u => u.UserAddress, userData.UserAddress)
-                                                                                                                                                                    .SetProperty(u => u.UserName, userData.UserName)
-                                                                                                                                                                    .SetProperty(u => u.UserPassword, userData.UserPassword)
-                                                                                                                                                                    .SetProperty(u => u.UserZipCode, userData.UserZipCode)
-                                                                                                                                                                    .SetProperty(u => u.UserCity, userData.UserCity)
-                                                                                                           );
+                                                                                                                                                                    .SetProperty(u => u.UserAddress, userData.UserAddress));
     ///<inheritdoc/>
     public async Task<int> GetEmailOccurrenceAsync(string userEmail) => await _context.User.Where(u => u.UserEmail.Equals(userEmail)).CountAsync();
 
