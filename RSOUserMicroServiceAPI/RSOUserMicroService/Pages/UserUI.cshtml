@@ -29,7 +29,7 @@
         <div style="padding: 23pt 30pt 0 30pt; display: flex; flex-direction: column;">
             <button id="updateUser" class="btn btn-primary" onclick="update()" style="margin-bottom: 25pt;">Update</button>
             <button id="logout" class="btn btn-danger" onclick="logOut()" style="margin-bottom: 25pt;">Log out</button>
-            <button id="deleteUser" class="btn btn-danger" onclick="delete()">Delete</button>
+            <button id="deleteUser" class="btn btn-danger" onclick="deleteUser()">Delete</button>
         </div>
 
     </div>
@@ -37,63 +37,62 @@
   
 
     <div id="adsContainer" style="padding: 23pt 30pt 0 30pt;"></div>
-
     <script>
-       
-           /* $.ajax({
-                url: '/api/user/' + userId,
-                method: 'GET',
-                success: function (data) {
-                    user = data.user;
-                    ads = data.ads;
 
-                    console.log(user);
+        /* $.ajax({
+             url: '/api/user/' + userId,
+             method: 'GET',
+             success: function (data) {
+                 user = data.user;
+                 ads = data.ads;
 
-                    // if logged user's profile
-                    if (currentUserID == 3) {
-                        document.getElementById("form").hidden = false;
-                        document.getElementById("show").hidden = true;
+                 console.log(user);
 
-                        $('#username').val(user.userName);
-                        $('#email').val(user.userEmail);
-                        $('#address').val(user.userLocation);
-                        $('#zipcode').val(user.userZipcode);
+                 // if logged user's profile
+                 if (currentUserID == 3) {
+                     document.getElementById("form").hidden = false;
+                     document.getElementById("show").hidden = true;
 
-                    } else {
-                        document.getElementById("form").hidden = true;
-                        document.getElementById("show").hidden = false;
+                     $('#username').val(user.userName);
+                     $('#email').val(user.userEmail);
+                     $('#address').val(user.userLocation);
+                     $('#zipcode').val(user.userZipcode);
 
-                        $('#usernameT').text(user.userName);
-                        $('#emailT').text("Email: " + user.userEmail);
-                        $('#addressT').text("Address: " + user.userLocation);
-                        $('#zipcodeT').text("Zipcode: " + user.userZipcode);
-                    }
+                 } else {
+                     document.getElementById("form").hidden = true;
+                     document.getElementById("show").hidden = false;
 
-                    console.log(ads);
-                    var adsContainer = $('#adsContainer');
+                     $('#usernameT').text(user.userName);
+                     $('#emailT').text("Email: " + user.userEmail);
+                     $('#addressT').text("Address: " + user.userLocation);
+                     $('#zipcodeT').text("Zipcode: " + user.userZipcode);
+                 }
 
-                    ads.forEach(function (ad) {
-                        var adElement = `
-                                            <div style="background-color: #fff;
-                                                    border-radius: 5px;
-                                                    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-                                                    margin: 15px 0;
-                                                    padding: 15px;
-                                                    position: relative;
-                                                    overflow: hidden;">
-                                                <h3>${ad.thing}</h3>
-                                                <p style="margin: 0;">Cena: ${ad.price}&euro;</p>
-                                                <p style="margin: 0;">Kategorija: ${ad.category}</p>
-                                                <p>Objavljeno: ${ad.postTime}</p>
-                                            </div>
-                                        `;
-                        adsContainer.append(adElement);
-                    });
-                },
-                error: function () {
-                    console.log('Failed to fetch data.');
-                }
-            });
+                 console.log(ads);
+                 var adsContainer = $('#adsContainer');
+
+                 ads.forEach(function (ad) {
+                     var adElement = `
+                                         <div style="background-color: #fff;
+                                                 border-radius: 5px;
+                                                 box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+                                                 margin: 15px 0;
+                                                 padding: 15px;
+                                                 position: relative;
+                                                 overflow: hidden;">
+                                             <h3>${ad.thing}</h3>
+                                             <p style="margin: 0;">Cena: ${ad.price}&euro;</p>
+                                             <p style="margin: 0;">Kategorija: ${ad.category}</p>
+                                             <p>Objavljeno: ${ad.postTime}</p>
+                                         </div>
+                                     `;
+                     adsContainer.append(adElement);
+                 });
+             },
+             error: function () {
+                 console.log('Failed to fetch data.');
+             }
+         });
         });*/
     </script>
     <script>
@@ -187,7 +186,7 @@
             });
         }
         
-        function delete (){
+        function deleteUser (){
             const tokenString = localStorage.getItem('decodedToken');
             const token = JSON.parse(tokenString);
             $.ajax({
