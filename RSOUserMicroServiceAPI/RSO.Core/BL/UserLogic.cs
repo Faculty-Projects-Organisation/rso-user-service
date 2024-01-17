@@ -70,7 +70,8 @@ public class UserLogic : IUserLogic
             new("RegisteredOn",existingUser.RegisteredOn.ToString()),
             new("UserZipCode",existingUser.UserZipCode),
             new("UserCity",existingUser.UserCity),
-            new("UserAddress",existingUser.UserAddress)
+            new("UserAddress",existingUser.UserAddress),
+            new("UserName",existingUser.UserName)
         };
 
         var signingCredentials = new SigningCredentials(
