@@ -12,7 +12,11 @@ public class UserEndpoints : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapHealthChecks("/users/api/health").WithTags("Health");
+        app.MapHealthChecks("/users/api/health");
+
+        app.MapGet("/users/hello", (HttpContext httpContext) => httpContext.Response.WriteAsync("Hello from user service."));
+
+        app.MapGet("/hello", (HttpContext httpContext) => httpContext.Response.WriteAsync("Hello from user service."));
 
         // Group for /users/api endpoinds.
         var group = app.MapGroup("/users/api/");
