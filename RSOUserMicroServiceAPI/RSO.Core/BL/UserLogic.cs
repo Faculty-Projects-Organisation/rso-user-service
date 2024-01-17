@@ -208,12 +208,15 @@ public class UserLogic : IUserLogic
     ///<inheritdoc/>
     public async Task<List<Ad>> GetUsersAddsAsync(int userId)
     {
-        var restClient = new RestClient(_crossEndpointsFunctionalityConfiguration.GetAdsByUserIdEndpoint);
+        var userURL = $"https://localhost:7265/api/ad/user/{userId}";
+        var restClient = new RestClient(userURL);
         var restRequest = new RestRequest();
         var response = restClient.ExecuteAsync(restRequest);
         response.Wait();
         var restResponse = await response;
-
-        return JsonConvert.DeserializeObject<List<Ad>>(restResponse.Content).Where(ad => ad.UserId == userId).ToList();
+        var ads = JsonConvert.DeserializeObject<List<Ad>>(restResponse.Content);
+        if(!ads.Any())
+            return Enumerable.Empty<Ad>().ToList();
+        return ads.Where(ad => ad.UserId == userId).ToList();
     }
 }
