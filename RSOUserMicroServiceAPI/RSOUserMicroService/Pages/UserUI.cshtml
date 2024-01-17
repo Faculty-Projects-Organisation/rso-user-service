@@ -1,4 +1,4 @@
-﻿@page "/UserUI"
+﻿@page "/users/show/{UserId:int}"
 @model RSOUserMicroService.Pages.UserUIModel
 @{
     Layout = "_Layout";
@@ -6,73 +6,107 @@
 }
 <div style="padding: 20pt 70pt 0 70pt;">
 
-    <div id="form" style="padding: 20pt 70pt 0 70pt; display: flex;" hidden>
+    <div id="form" hidden>
+         <h2 style="color: white; margin: 10pt;">Uredi podatke</h2>
+        <div style="padding: 0 50pt 0 50pt; display: flex;">
 
-        <div style="width: 20vw;">
-            <label for="username" class="form-label" style="color: rgb(231, 231, 231);">Username</label>
-            <input id="username" type="text" class="form-control" id="username">
 
-            <label for="email" class="form-label" style="color: rgb(231, 231, 231);">Email</label>
-            <input id="email" type="email" class="form-control" id="email">
+                <div style="width: 20vw;">
+                    <label for="username" class="form-label" style="color: rgb(231, 231, 231);">Username</label>
+                    <input id="username" type="text" class="form-control" id="username">
 
-            <label for="address" class="form-label" style="color: rgb(231, 231, 231);">Address</label>
-            <input id="address" type="text" class="form-control" id="address">
+                    <label for="email" class="form-label" style="color: rgb(231, 231, 231);">Email</label>
+                    <input id="email" type="email" class="form-control" id="email">
 
-            <label for="zipcode" class="form-label" style="color: rgb(231, 231, 231);">Zipcode</label>
-            <input id="zipcode" type="text" class="form-control" id="zipcode">
+                    <label for="address" class="form-label" style="color: rgb(231, 231, 231);">Address</label>
+                    <input id="address" type="text" class="form-control" id="address">
 
-            <label for="exampleInputPassword1" class="form-label" style="color: rgb(231, 231, 231);">Password</label>
-            <input id="exampleInputPassword1" type="password" class="form-control" id="exampleInputPassword1">
+                    <label for="zipcode" class="form-label" style="color: rgb(231, 231, 231);">Zipcode</label>
+                    <input id="zipcode" type="text" class="form-control" id="zipcode">
+
+                    <label for="exampleInputPassword1" class="form-label" style="color: rgb(231, 231, 231);">Password</label>
+                    <input id="exampleInputPassword1" type="password" class="form-control" id="exampleInputPassword1">
+                </div>
+
+
+            <div style="padding: 23pt 30pt 0 30pt; display: flex; flex-direction: column;">
+                <button id="updateUser" class="btn btn-primary" onclick="update()" style="margin-bottom: 25pt;">Update</button>
+                <button id="deleteUser" class="btn btn-danger" onclick="deleteUser()" style="margin-bottom: 25pt;">Delete</button>
+                <button id="logout" class="btn btn-secondary" onclick="logOut()">Log out</button>
+            </div>
+
         </div>
+    </div>
 
-
-        <div style="padding: 23pt 30pt 0 30pt; display: flex; flex-direction: column;">
-            <button id="updateUser" class="btn btn-primary" onclick="update()" style="margin-bottom: 25pt;">Update</button>
-            <button id="logout" class="btn btn-danger" onclick="logOut()" style="margin-bottom: 25pt;">Log out</button>
-            <button id="deleteUser" class="btn btn-danger" onclick="deleteUser()">Delete</button>
-        </div>
-
+    <div id="show" hidden>
+        <h1 id="usernameT" style="color: white;"></h1>
+        <h3 id="emailT" style="color: white;"></h3>
+        <h3 id="addressT" style="color: white;"></h3>
+        <h3 id="zipcodeT" style="color: white;"></h3>
     </div>
 
   
-
-    <div id="adsContainer" style="padding: 23pt 30pt 0 30pt;"></div>
+    <h2 id="adslabel" style="color: white; margin: 20pt 0 10pt 0;"></h2>
+    <div id="adsContainer" style="padding: 0 30pt 0 30pt; width: 60vw;"></div>
+    
     <script>
+        var userID;
+        var regusteredUserID;
 
-        /* $.ajax({
-             url: '/api/user/' + userId,
-             method: 'GET',
-             success: function (data) {
-                 user = data.user;
-                 ads = data.ads;
+        $(document).ready(function () {
+            console.log("url id:", @Model.UserId);
+            userID = @Model.UserId;
 
-                 console.log(user);
+            const tokenString = localStorage.getItem('decodedToken');
+            const token = JSON.parse(tokenString);
+            if (token == null || token == undefined) {
+                window.location.href = "/users/login";
+            } else {
+                $("#email").val(token.email);
+                $("#zipcode").val(token.UserZipCode);
+                $("#address").val(token.UserAddress);
 
-                 // if logged user's profile
-                 if (currentUserID == 3) {
-                     document.getElementById("form").hidden = false;
-                     document.getElementById("show").hidden = true;
+                regusteredUserID = token.sub;
+                getUserData(userID);
+            }
+        });
 
-                     $('#username').val(user.userName);
-                     $('#email').val(user.userEmail);
-                     $('#address').val(user.userLocation);
-                     $('#zipcode').val(user.userZipcode);
+        function getUserData(userId) {
+            $.ajax({
+                url: '/users/api/' + userId,
+                method: 'GET',
+                success: function (user) {
+                    console.log(user);
 
-                 } else {
-                     document.getElementById("form").hidden = true;
-                     document.getElementById("show").hidden = false;
 
-                     $('#usernameT').text(user.userName);
-                     $('#emailT').text("Email: " + user.userEmail);
-                     $('#addressT').text("Address: " + user.userLocation);
-                     $('#zipcodeT').text("Zipcode: " + user.userZipcode);
-                 }
+                    if (user.id == regusteredUserID) {
 
-                 console.log(ads);
-                 var adsContainer = $('#adsContainer');
+                        document.getElementById("form").hidden = false;
+                        document.getElementById("show").hidden = true;
 
-                 ads.forEach(function (ad) {
-                     var adElement = `
+                        $('#username').val(user.userName);
+                        $('#email').val(user.userEmail);
+                        $('#address').val(user.userLocation);
+                        $('#zipcode').val(user.userZipcode);
+
+                    } else {
+                        document.getElementById("form").hidden = true;
+                        document.getElementById("show").hidden = false;
+
+                        $('#usernameT').text(user.userName);
+                        $('#emailT').text("Email: " + user.userEmail);
+                        $('#addressT').text("Address: " + user.userLocation);
+                        $('#zipcodeT').text("Zipcode: " + user.userZipcode);
+                    }
+                    
+
+                    // if there is a user.ads property
+                    if (user.ads) {
+                        var adsContainer = $('#adsContainer');
+                        adsContainer.empty();
+
+                        user.ads.forEach(function (ad) {
+                            var adElement = `
                                          <div style="background-color: #fff;
                                                  border-radius: 5px;
                                                  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
@@ -80,61 +114,18 @@
                                                  padding: 15px;
                                                  position: relative;
                                                  overflow: hidden;">
-                                             <h3>${ad.thing}</h3>
+                                                     <h3><a href="http://20.73.26.56/ads/show/${ad.id}" style="text-decoration: none; color:black;">${ad.thing}</a></h3>
                                              <p style="margin: 0;">Cena: ${ad.price}&euro;</p>
                                              <p style="margin: 0;">Kategorija: ${ad.category}</p>
                                              <p>Objavljeno: ${ad.postTime}</p>
                                          </div>
                                      `;
-                     adsContainer.append(adElement);
-                 });
-             },
-             error: function () {
-                 console.log('Failed to fetch data.');
-             }
-         });
-        });*/
-    </script>
-    <script>
-        $(document).ready(function () {
-            const tokenString = localStorage.getItem('decodedToken');
-            const token = JSON.parse(tokenString);
-            if (token == null || token == undefined) {
-                window.location.href = "/LoginUI";
-            } else {
-                $("#email").val(token.email);
-                $("#zipcode").val(token.UserZipCode);
-                $("#address").val(token.UserAddress);
-
-                getUserData(token.sub);
-            }
-
-            // Attach click event handler to the login button
-
-
-
-            $('#getUser').click(function () {
-                var userId = $('#userId').val();
-                getUserData(userId);
-
-            });
-        });
-
-        function getUserData(userId) {
-            $.ajax({
-                url: '/api/user/' + userId,
-                method: 'GET',
-                success: function (user) {
-                    console.log(user);
-                    // value of ad.thing to the element with id thing
-                    document.getElementById("form").hidden = false;
-                    document.getElementById("show").hidden = true;
-
-                    $('#username').val(user.userName);
-                    $('#email').val(user.userEmail);
-                    $('#address').val(user.userLocation);
-                    $('#zipcode').val(user.userZipcode);
-
+                            adsContainer.append(adElement);
+                        });
+                        $('#adslabel').text("Oglasi uporabnika " + user.userName);
+                    } else {
+                        $('#adslabel').text("Uporabnik " + user.userName + " nima objavljenih oglasov.");
+                    }
 
                 },
                 error: function () {
@@ -166,7 +157,7 @@
                 "UserAddress": address,
             };
             $.ajax({
-                url: '/api/user/update',
+                url: '/users/api/update',
                 method: 'PATCH',
                 contentType: 'application/json',
                 data: JSON.stringify(user),
@@ -177,11 +168,7 @@
                     localStorage.setItem('jwtToken', data);
                     const decodedToken = decodeJwt(data);
                     localStorage.setItem('decodedToken', JSON.stringify(decodedToken));
-                    window.location.href = "/UserUI";
-
-                    // value of ad.thing to the element with id thing
-                    document.getElementById("form").hidden = false;
-                    document.getElementById("show").hidden = true;
+                    window.location.href = "/users/show/" + token.sub;
                 },
             });
         }
@@ -190,13 +177,13 @@
             const tokenString = localStorage.getItem('decodedToken');
             const token = JSON.parse(tokenString);
             $.ajax({
-                url: '/api/user/' + token.sub,
+                url: '/users/api/' + token.sub,
                 method: 'DELETE',
                 success: function (data) {
                     console.log(data);
                     localStorage.removeItem('jwtToken');
                     localStorage.removeItem('decodedToken');
-                    window.location.href = "/RegisterUI";
+                    window.location.href = "/users/register";
                 },
             });
         }

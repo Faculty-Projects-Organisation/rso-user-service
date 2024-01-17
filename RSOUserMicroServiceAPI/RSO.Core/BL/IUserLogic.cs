@@ -29,6 +29,8 @@ public interface IUserLogic
     /// <returns>JWT token if result is true.</returns>
     public string GetJwtToken(User existingUser);
 
+    public Task<List<User>> GetAllUsersAsync();
+
     /// <summary>
     /// Gets user by its Id.
     /// </summary>
@@ -93,4 +95,6 @@ public interface IUserLogic
     /// <param name="email">The email of the user.</param>
     /// <returns>True, if the username is already taken.</returns>
     public Task<bool> UsernameOrEmailAlreadyTakenAsync(string userName, string email);
+
+
 }

@@ -19,7 +19,7 @@ public interface IGenericRepository<T> where T : class
     /// Gets all the enumerators for a database type.
     /// </summary>
     /// <returns>All enumerators for a database type.</returns>
-    public Task<IEnumerable<T>> GetAllAsync();
+    public Task<List<T>> GetAllAsync();
 
     /// <summary>
     /// Gets many enumerators for a database type based on a condition.

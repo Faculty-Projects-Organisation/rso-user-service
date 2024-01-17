@@ -1,4 +1,4 @@
-﻿@page "/RegisterUI"
+﻿@page "/users/register"
 @model RSOUserMicroService.Pages.LoginUIModel
 @{
     Layout = "_Layout";
@@ -6,7 +6,7 @@
 }
 <div class="row">
     <div class="col-md-6 offset-md-3">
-        <h1 style="color: white; text-align: center;">Register</h1>
+        <h1 style="color: white; text-align: center; margin-top: 20pt;">Register</h1>
 
         <label for="thing">Username:</label>
         <input type="text" id="username" name="username" required class="form-control"><br><br>
@@ -31,7 +31,7 @@
     $(document).ready(function () {
         // Attach click event handler to the login button
         $("#registerBtn").click(function () {
-            const url = '/register'; // Assuming that the registration API is hosted on the same server
+            const url = '/users/api/register'; // Assuming that the registration API is hosted on the same server
             const username = $("#username").val();
             const email = $("#email").val();
             const password = $("#password").val();
@@ -56,6 +56,7 @@
                     localStorage.setItem('jwtToken', data);
                     const decodedToken = decodeJwt(data);
                     localStorage.setItem('decodedToken', JSON.stringify(decodedToken));
+                    window.location.href = "/users/index";
                 },
                 error: function (error) {
                     console.error('Error:', error);

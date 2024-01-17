@@ -89,6 +89,18 @@ public class UserLogic : IUserLogic
         return new JwtSecurityTokenHandler().WriteToken(jwtToken);
     }
 
+    public async Task<List<User>> GetAllUsersAsync()
+    {
+        try
+        {
+            return await _unitOfWork.UserRepository.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            return null;
+        }
+    }
+
     ///<inheritdoc/>
     public async Task<User> GetUserByIdAsync(int id)
     {
@@ -208,7 +220,7 @@ public class UserLogic : IUserLogic
     ///<inheritdoc/>
     public async Task<List<Ad>> GetUsersAddsAsync(int userId)
     {
-        var userURL = $"https://localhost:7265/api/ad/user/{userId}";
+        var userURL = _crossEndpointsFunctionalityConfiguration.GetAdsByUserIdEndpoint + userId;
         var restClient = new RestClient(userURL);
         var restRequest = new RestRequest();
         var response = restClient.ExecuteAsync(restRequest);

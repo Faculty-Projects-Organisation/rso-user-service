@@ -19,7 +19,7 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
     protected GenericRepository(UserServicesRSOContext context) { _context = context; }
 
     /// <inheritdoc/>
-    public async Task<IEnumerable<T>> GetAllAsync() => await _context.Set<T>().ToListAsync();
+    public async Task<List<T>> GetAllAsync() => await _context.Set<T>().ToListAsync();
 
     /// <inheritdoc/>
     public async Task<T> GetByIdAsync(int id) => await _context.Set<T>().FindAsync(id);

@@ -10,6 +10,7 @@ using RSO.Core.UserModels;
 using System.Text;
 using UserServiceRSO.Repository;
 using RSO.Core.Health;
+using Serilog;
 
 #region BUILDER
 var builder = WebApplication.CreateBuilder(args);
@@ -27,8 +28,7 @@ builder.Services.AddOptions<JwtSecurityTokenConfiguration>()
 builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<JwtSecurityTokenConfiguration>>().Value);
 
 // Register the IOptions object.
-builder.Services.AddOptions<CrossEndpointsFunctionalityConfiguration>()
-    .BindConfiguration("JwtSecurityTokenConfiguration");
+builder.Services.AddOptions<CrossEndpointsFunctionalityConfiguration>().BindConfiguration("CrossEndpointsFunctionalityConfiguration");
 // Explicitly register the settings objects by delegating to the IOptions object.
 builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<CrossEndpointsFunctionalityConfiguration>>().Value);
 
@@ -94,6 +94,8 @@ builder.Services.AddOpenApiDocument(options =>
     options.UseControllerSummaryAsTagDescription = true;
 });
 
+builder.Host.UseSerilog((context, configuration) =>
+    configuration.ReadFrom.Configuration(context.Configuration));
 #endregion
 
 #region APP
@@ -118,6 +120,8 @@ app.UseEndpoints(endpoints =>
     endpoints.MapRazorPages();
     endpoints.MapControllers();
 });
+
+app.UseSerilogRequestLogging();
 
 app.Run();
 #endregion

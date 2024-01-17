@@ -1,4 +1,4 @@
-﻿@page "/LoginUI"
+﻿@page "/users/login"
 @model RSOUserMicroService.Pages.LoginUIModel
 @{
     Layout = "_Layout";
@@ -6,7 +6,7 @@
 }
 <div class="row">
     <div class="col-md-6 offset-md-3">
-        <h1 style="color: white; text-align: center;">Login</h1>
+        <h1 style="color: white; text-align: center; margin-top: 20pt;">Login</h1>
 
         <label for="thing">Username:</label>
         <input type="text" id="username" name="username" required class="form-control"><br><br>
@@ -23,11 +23,11 @@
         const tokenString = localStorage.getItem('decodedToken');
         const token = JSON.parse(tokenString);
         if (token) {
-            window.location.href = "/UserUI";
+            window.location.href = "/users/index";
         }
         // Attach click event handler to the login button
         $("#login").click(function () {
-            const url = '/login'; // Assuming that the login API is hosted on the same server
+            const url = '/users/api/login'; // Assuming that the login API is hosted on the same server
             const username = $("#username").val();
             const password = $("#password").val();
 
@@ -46,7 +46,7 @@
                     localStorage.setItem('jwtToken', data);
                     const decodedToken = decodeJwt(data);
                     localStorage.setItem('decodedToken', JSON.stringify(decodedToken));
-                    window.location.href = "/UserUI";
+                    window.location.href = "/users/index";
                 },
                 error: function (error) {
                     console.error('Error:', error);
