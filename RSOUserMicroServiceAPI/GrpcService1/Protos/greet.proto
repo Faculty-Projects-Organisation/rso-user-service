@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 option csharp_namespace = "GrpcService1";
+import "google/api/annotations.proto";
 
 package greet;
 
@@ -9,7 +10,11 @@ service Greeter {
   // Sends a greeting
   rpc SayHello (HelloRequest) returns (HelloReply);
 
-  rpc ReturnUserById(UserByIdRequest) returns (UserByIdReply);
+  rpc ReturnUserById(UserByIdRequest) returns (UserByIdReply){
+	  option (google.api.http) = {
+		  get: "/api/user/{id}"
+	  };
+  }
 }
 
 // The request message containing the user's name.
@@ -30,7 +35,7 @@ message UserByIdReply {
   string userName = 1;
   string email = 2;
   string userAddress = 3;
-  string zipCode =4;
+  string zipCode = 4;
   string registeredOn = 5;
   int32 id =6;
 }
