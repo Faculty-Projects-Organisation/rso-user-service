@@ -10,7 +10,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
+using Grpc.Net.Client;
 using UserServiceRSO.Repository;
+using RSOUserMicroservice;
+using System.Globalization;
 
 namespace RSO.Core.BL;
 
@@ -50,13 +53,13 @@ public class UserLogic : IUserLogic
     {
         return await _appcache.GetOrAddAsync($"city_from_zip_code_{userZipCode}", async () =>
         {
-             var restRequest = new RestRequest();
-             var restClient = new RestClient($"https://api.lavbic.net/kraji/{userZipCode}");
-             var response = restClient.ExecuteAsync(restRequest);
-             response.Wait();
-             var restResponse = await response;
+            var restRequest = new RestRequest();
+            var restClient = new RestClient($"https://api.lavbic.net/kraji/{userZipCode}");
+            var response = restClient.ExecuteAsync(restRequest);
+            response.Wait();
+            var restResponse = await response;
 
-             return restResponse.StatusCode.Equals(HttpStatusCode.OK) ? JsonConvert.DeserializeObject<CityData>(restResponse.Content).City : null;
+            return restResponse.StatusCode.Equals(HttpStatusCode.OK) ? JsonConvert.DeserializeObject<CityData>(restResponse.Content).City : null;
         });
     }
 
@@ -209,7 +212,7 @@ public class UserLogic : IUserLogic
     {
         try
         {
-            return await _unitOfWork.UserRepository.GetUserNameOcurrenceAsync(userName) <=1;
+            return await _unitOfWork.UserRepository.GetUserNameOcurrenceAsync(userName) <= 1;
         }
         catch (Exception ex)
         {
@@ -218,7 +221,7 @@ public class UserLogic : IUserLogic
     }
 
     ///<inheritdoc/>
-    public async Task<List<Ad>> GetUsersAddsAsync(int userId)
+    public async Task<List<Ad>> GetUsersAdsAsync(int userId)
     {
         var userURL = _crossEndpointsFunctionalityConfiguration.GetAdsByUserIdEndpoint + userId;
         var restClient = new RestClient(userURL);
@@ -227,8 +230,34 @@ public class UserLogic : IUserLogic
         response.Wait();
         var restResponse = await response;
         var ads = JsonConvert.DeserializeObject<List<Ad>>(restResponse.Content);
-        if(!ads.Any())
+        if (!ads.Any())
             return Enumerable.Empty<Ad>().ToList();
         return ads.Where(ad => ad.UserId == userId).ToList();
+    }
+
+    ///<inheritdoc/>
+    public List<Ad> GetUsersAdsByRPC(int userId)
+    {
+        var channel = GrpcChannel.ForAddress("https://4.182.10.187");
+        var client = new AdProto.AdProtoClient(channel);
+
+        var reply = client.GetAdsByUserId(new AdByIdUserIdRequest { UserId = userId });
+        if (!reply.Ads.Any())
+            return Enumerable.Empty<Ad>().ToList();
+        var ads = new List<Ad>();
+        foreach (var adItem in reply.Ads)
+        {
+            var ad = new Ad()
+            {
+                ID = adItem.Id,
+                Category = adItem.Category,
+                Thing = adItem.Thing,
+                Price = adItem.Price,
+                UserId = userId,
+                PostTime = DateTime.ParseExact(adItem.PublishDate,"MM/dd/yyyy HH:mm:ss",new CultureInfo("si-SI"))
+                            };
+            ads.Add(ad);
+        }
+        return ads;
     }
 }

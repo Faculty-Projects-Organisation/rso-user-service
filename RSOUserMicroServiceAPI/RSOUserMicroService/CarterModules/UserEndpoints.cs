@@ -1,7 +1,6 @@
 ﻿using Carter;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using RSO.Core.AdModels;
 using RSO.Core.BL;
 using RSO.Core.BL.LogicModels;
 using RSO.Core.UserModels;
@@ -68,8 +67,11 @@ public class UserEndpoints : ICarterModule
             .WithDescription("More than one user exist with this email or username.")
             .WithTags("Users");
 
-        //group.MapGet("/health", HealthCheck).WithName(nameof(HealthCheck)).
-        //   Produces(StatusCodes.Status200OK).WithTags("Health");
+        group.MapGet("/usersAdsByGrpc", GetUserWithGrpcAdRetrieval).WithName(nameof(GetUserWithGrpcAdRetrieval)).
+            Produces(StatusCodes.Status200OK).
+            Produces(StatusCodes.Status400BadRequest).
+            Produces(StatusCodes.Status401Unauthorized).
+            WithTags("Users").WithDescription("Gets the user, specified by the id.");
     }
 
     /// <summary>
@@ -107,8 +109,7 @@ public class UserEndpoints : ICarterModule
     {
         var requestId = httpContext?.TraceIdentifier ?? "Unknown";
         logger.Information("user-service: Register method called. RequestID: {@requestId}", requestId);
-        //Use FLUENT_VALIDATION LIB NEXT TIME.
-
+       
         if (string.IsNullOrEmpty(newUser.UserName))
             return TypedResults.BadRequest("User name or email cannot be empty.");
         if (await userLogic.UsernameOrEmailAlreadyTakenAsync(newUser.UserName, newUser.UserEmail))
@@ -157,7 +158,7 @@ public class UserEndpoints : ICarterModule
         if (user is null)
             return TypedResults.BadRequest("User with the specified doesn't exist.");
 
-        var ads = await userLogic.GetUsersAddsAsync(id);
+        var ads = await userLogic.GetUsersAdsAsync(id);
         if (!ads.Any())
         {
             var userWithoutAds = new UserDataWithoutAdsDTO(user);
@@ -263,6 +264,13 @@ public class UserEndpoints : ICarterModule
         return TypedResults.BadRequest("Failed to update the user.");
     }
 
+    /// <summary>
+    /// Get
+    /// </summary>
+    /// <param name="userLogic"></param>
+    /// <param name="logger"></param>
+    /// <param name="httpContext"></param>
+    /// <returns></returns>
     public static async Task<Results<Ok<List<User>>, BadRequest<string>>> GetAllUsers(IUserLogic userLogic, Serilog.ILogger logger, HttpContext httpContext)
     {
         var requestId = httpContext?.TraceIdentifier ?? "Unknown";
@@ -277,5 +285,39 @@ public class UserEndpoints : ICarterModule
 
         logger.Information("user-service: Exiting method GetAllUsers");
         return TypedResults.Ok(users);
+    }
+
+
+
+    /// <summary>
+    /// Gets the user by id. User gRPC to get the ads.
+    /// </summary>
+    /// <param name="id">Id of the user.</param>
+    /// <param name="userLogic"><see cref="IUserLogic"/> instance.</param>
+    /// <returns>User data for the user.</returns>
+    public static async Task<Results<Ok<UserWithAdsDataDTO>, Ok<UserDataWithoutAdsDTO>, BadRequest<string>>> GetUserWithGrpcAdRetrieval(int id, IUserLogic userLogic, Serilog.ILogger logger, HttpContext httpContext)
+    {
+        var requestId = httpContext?.TraceIdentifier ?? "Unknown";
+        logger.Information("user-service: GetUserById method called. RequestID: {@requestId}", requestId);
+
+        var user = await userLogic.GetUserByIdAsync(id);
+
+        if (user is null)
+            return TypedResults.BadRequest("User with the specified doesn't exist.");
+
+        var ads = userLogic.GetUsersAdsByRPC(id);
+        if (!ads.Any())
+        {
+            var userWithoutAds = new UserDataWithoutAdsDTO(user);
+            return TypedResults.Ok(userWithoutAds);
+        }
+
+        var userData = new UserWithAdsDataDTO(user, ads);
+
+
+        //Get all the ads from that user.
+        logger.Information("user-service: Exiting method GetUserById");
+
+        return TypedResults.Ok(userData);
     }
 }

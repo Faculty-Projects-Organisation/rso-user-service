@@ -29,13 +29,17 @@ public interface IUserLogic
     /// <returns>JWT token if result is true.</returns>
     public string GetJwtToken(User existingUser);
 
+    /// <summary>
+    /// Gets all users.
+    /// </summary>
+    /// <returns>All of the users in the database.</returns>
     public Task<List<User>> GetAllUsersAsync();
 
     /// <summary>
     /// Gets user by its Id.
     /// </summary>
-    /// <param name="id">The id of the user.</param>
-    /// <returns><see cref="User"/> instance, specified by the id of the user.</returns>
+    /// <param name="id">The userId of the user.</param>
+    /// <returns><see cref="User"/> instance, specified by the userId of the user.</returns>
     public Task<User> GetUserByIdAsync(int id);
 
     /// <summary>
@@ -51,7 +55,7 @@ public interface IUserLogic
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
-    public Task<List<Ad>> GetUsersAddsAsync(int userId);
+    public Task<List<Ad>> GetUsersAdsAsync(int userId);
 
     /// <summary>
     /// Checks if the email is unique.
@@ -71,7 +75,7 @@ public interface IUserLogic
     /// Implements user registration and insert the user.
     /// </summary>
     /// <param name="newUser"></param>
-    /// <returns>The same <see cref="User"/> object with and id.</returns>
+    /// <returns>The same <see cref="User"/> object with and userId.</returns>
     public Task<User> RegisterUserAsync(User newUser);
 
     /// <summary>
@@ -96,5 +100,10 @@ public interface IUserLogic
     /// <returns>True, if the username is already taken.</returns>
     public Task<bool> UsernameOrEmailAlreadyTakenAsync(string userName, string email);
 
-
+    /// <summary>
+    /// Gets all the add of a certain user.
+    /// </summary>
+    /// <param name="userId">User's ID.</param>
+    /// <returns>All of the users ads.</returns>
+    public List<Ad> GetUsersAdsByRPC(int userId);
 }
