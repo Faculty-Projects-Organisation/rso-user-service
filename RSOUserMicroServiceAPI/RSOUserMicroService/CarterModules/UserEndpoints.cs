@@ -67,7 +67,7 @@ public class UserEndpoints : ICarterModule
             .WithDescription("More than one user exist with this email or username.")
             .WithTags("Users");
 
-        group.MapGet("/usersAdsByGrpc", GetUserWithGrpcAdRetrieval).WithName(nameof(GetUserWithGrpcAdRetrieval)).
+        group.MapGet("/usersAdsByGrpc/{id}", GetUserWithGrpcAdRetrieval).WithName(nameof(GetUserWithGrpcAdRetrieval)).
             Produces(StatusCodes.Status200OK).
             Produces(StatusCodes.Status400BadRequest).
             Produces(StatusCodes.Status401Unauthorized).
