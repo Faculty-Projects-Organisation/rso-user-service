@@ -238,7 +238,7 @@ public class UserLogic : IUserLogic
     ///<inheritdoc/>
     public List<Ad> GetUsersAdsByRPC(int userId)
     {
-        var channel = GrpcChannel.ForAddress("https://4.182.10.187");
+        var channel = GrpcChannel.ForAddress("http://ad-cip-service:80/ads/api/grpc/" + userId);
         var client = new AdProto.AdProtoClient(channel);
 
         var reply = client.GetAdsByUserId(new AdByIdUserIdRequest { UserId = userId });
