@@ -9,12 +9,12 @@ namespace RSO.Core.Repository;
 public interface IUserRepository : IGenericRepository<User>
 {
     /// <summary>
-    /// Checks if user exists by username or email or password.
+    /// Checks if user exists by username or email or password. IF true, it returns the user as an out parameter.
     /// </summary>
     /// <param name="emailOrUsername">The username or email of the user we are looking for.</param>
     /// <param name="password">The password of the user.</param>
     /// <returns>True, if the user exists. Otherwise false.</returns>
-    public Task<bool> UserExistsByUserNameOrEmailOrPasswordAsync(string emailOrUsername, string password);
+    public bool TryGetUserByUserNameOrEmailOrPassword(string emailOrUsername, string password, out User? user);
 
     /// <summary>
     /// Checks if the user name or the password is already taken.
@@ -25,25 +25,15 @@ public interface IUserRepository : IGenericRepository<User>
     public Task<bool> UsernameOrEmailAlreadyTakenAsync(string userName, string email);
 
     /// <summary>
-    /// Gets the user based on his credentials.
-    /// </summary>
-    /// <param name="emailOrUsername">The username or email of the user we are looking for.</param>
-    /// <param name="password">The password of the user.</param>
-    /// <returns> The corresponding user if one exists in the database.</returns>
-    public Task<User> GetByUsernameOrEmailAndPasswordAsync(string emailOrUsername, string password);
-
-    /// <summary>
     /// Deletes the user.
     /// </summary>
-    /// <param name="user">User.</param>
-    /// <returns></returns>
-    public Task DeleteUserAsync(User user);
+    /// <param name="userId"></param>
+    public Task DeleteUserByIdAsync(int userId);
 
     /// <summary>
     /// Updates the username of the user.
     /// </summary>
     /// <param name="user">User.</param>
-    /// <returns></returns>
     public Task UpdateUsersNameAsync(User user);
 
     /// <summary>
@@ -54,16 +44,16 @@ public interface IUserRepository : IGenericRepository<User>
     public Task UpdateUserDataAsync(User userData);
 
     /// <summary>
-    /// 
+    /// How many times the username occurs in the database.
     /// </summary>
-    /// <param name="userEmail"></param>
-    /// <returns></returns>
+    /// <param name="userEmail">The user's email.</param>
+    /// <returns>The number of times the email is present in the database.</returns>
     public Task<int> GetEmailOccurrenceAsync(string userEmail);
 
     /// <summary>
-    ///
+    /// How many times the username occurs in the database.
     /// </summary>
-    /// <param name="userName"></param>
-    /// <returns></returns>
+    /// <param name="userName">The username.</param>
+    /// <returns>The number of times the username is present in the database. </returns>
     public Task<int> GetUserNameOcurrenceAsync(string userName);
 }

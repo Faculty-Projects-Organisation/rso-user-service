@@ -16,12 +16,6 @@ using Serilog;
 var builder = WebApplication.CreateBuilder(args);
 
 // Register the IOptions object.
-builder.Services.AddOptions<UserServicesSettingsConfiguration>()
-    .BindConfiguration("UserServicesSettingsConfiguration");
-// Explicitly register the settings objects by delegating to the IOptions object.
-builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<UserServicesSettingsConfiguration>>().Value);
-
-// Register the IOptions object.
 builder.Services.AddOptions<JwtSecurityTokenConfiguration>()
     .BindConfiguration("JwtSecurityTokenConfiguration");
 // Explicitly register the settings objects by delegating to the IOptions object.
@@ -35,9 +29,6 @@ builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<C
 //Database settings
 builder.Services.AddDbContext<UserServicesRSOContext>(options =>
 options.UseNpgsql(builder.Configuration.GetConnectionString("UserServicesRSOdB")));
-
-// Razor pages
-builder.Services.AddRazorPages();
 
 builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("Database").AddCheck<ExternalAPICheck>("LavbicAPI");
 
@@ -59,6 +50,7 @@ builder.Services
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero,
             ValidateIssuerSigningKey = true,
 
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecurityConfig.SecretKey)),
@@ -109,17 +101,11 @@ app.MapCarter();
 app.UseOpenApi();
 app.UseSwaggerUi3(options =>
 {
-    options.Path = "/openapi";
+    options.Path = "/userMicroservice/openapi";
     options.TagsSorter = "Users";
 });
 app.UseAuthentication();
 app.UseAuthorization();
-
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapRazorPages();
-    endpoints.MapControllers();
-});
 
 app.UseSerilogRequestLogging();
 

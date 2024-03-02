@@ -4,15 +4,23 @@ using RSO.Core.UserModels;
 
 namespace RSO.Core.Health;
 
-public class DatabaseHealthCheck : IHealthCheck
+/// <summary>
+/// Class instance for the database health check.
+/// </summary>
+/// <param name="context">Database context for the health check.</param>
+public class DatabaseHealthCheck(UserServicesRSOContext context) : IHealthCheck
 {
-    private readonly UserServicesRSOContext _context;
+    /// <summary>
+    /// Database context for the health check.
+    /// </summary>
+    private readonly UserServicesRSOContext _context = context;
 
-    public DatabaseHealthCheck(UserServicesRSOContext context)
-    {
-        _context = context;
-    }
-
+    /// <summary>
+    /// Performs a health check for the database.
+    /// </summary>
+    /// <param name="context">Database context.</param>
+    /// <param name="cancellationToken">Cancelation token.</param>
+    /// <returns>A <see cref="HealthCheckResult"/> based on the fact if the database can be communicated with.</returns>
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = new())
     {
         try

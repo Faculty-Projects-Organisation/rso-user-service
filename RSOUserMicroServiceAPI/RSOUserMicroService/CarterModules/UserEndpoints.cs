@@ -2,13 +2,14 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using RSO.Core.BL;
-using RSO.Core.BL.LogicModels;
+using RSO.Core.BL.LogicModels.DTO;
 using RSO.Core.UserModels;
 
 namespace UserServiceRSO.CarterModules;
 
 public class UserEndpoints : ICarterModule
 {
+    private const string _name = "User-Microservice Endpoints";
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapHealthChecks("/users/api/health");
@@ -31,7 +32,6 @@ public class UserEndpoints : ICarterModule
             Produces(StatusCodes.Status400BadRequest).
             Produces(StatusCodes.Status404NotFound).WithDescription("Ne najdem").
             AllowAnonymous().WithTags("Users");
-
 
         // Methods for  /users/api/id endpoints.
         group.MapGet("/", GetAllUsers).WithName(nameof(GetAllUsers)).
@@ -80,18 +80,18 @@ public class UserEndpoints : ICarterModule
     /// <param name="loginCredentials">The login credentials.</param>
     /// <param name="userLogic"><see cref="IUserLogic"/> dependency injection.</param>
     /// <returns>A JWT token as a string.</returns>
-    public static async Task<Results<Ok<string>, BadRequest<string>>> Login([FromBody] LoginCredentials loginCredentials, IUserLogic userLogic, Serilog.ILogger logger, HttpContext httpContext)
+    public static Results<Ok<string>, BadRequest<string>> Login([FromBody] LoginCredentialsDTO loginCredentials, IUserLogic userLogic, Serilog.ILogger logger, HttpContext httpContext)
     {
         var requestId = httpContext?.TraceIdentifier ?? "Unknown";
         logger.Information("user-service: Login method called. RequestID: {@requestId}", requestId);
 
-        if (string.IsNullOrEmpty(loginCredentials.EmailorUsername) || string.IsNullOrEmpty(loginCredentials.Password))
+        if (string.IsNullOrEmpty(loginCredentials.EmailOrUsername) || string.IsNullOrEmpty(loginCredentials.Password))
         {
             return TypedResults.BadRequest("Username (or email) and password cannot be empty.");
         }
         else
         {
-            var user = await userLogic.GetUserByUsernameOrEmailAndPasswordAsync(loginCredentials.EmailorUsername, loginCredentials.Password);
+            var user = userLogic.GetUserByUsernameOrEmailAndPassword(loginCredentials.EmailOrUsername, loginCredentials.Password);
             var jwt = userLogic.GetJwtToken(user);
             return jwt is null
                 ? TypedResults.BadRequest("The user with the specified username/email and password doesn't exist.")
@@ -109,7 +109,7 @@ public class UserEndpoints : ICarterModule
     {
         var requestId = httpContext?.TraceIdentifier ?? "Unknown";
         logger.Information("user-service: Register method called. RequestID: {@requestId}", requestId);
-       
+
         if (string.IsNullOrEmpty(newUser.UserName))
             return TypedResults.BadRequest("User name or email cannot be empty.");
         if (await userLogic.UsernameOrEmailAlreadyTakenAsync(newUser.UserName, newUser.UserEmail))
@@ -148,7 +148,7 @@ public class UserEndpoints : ICarterModule
     /// <param name="id">Id of the user.</param>
     /// <param name="userLogic"><see cref="IUserLogic"/> instance.</param>
     /// <returns>User data for the user.</returns>
-    public static async Task<Results<Ok<UserWithAdsDataDTO>, Ok<UserDataWithoutAdsDTO>, BadRequest<string>>> GetUserById(int id, IUserLogic userLogic, Serilog.ILogger logger, HttpContext httpContext)
+    public static async Task<Results<Ok<UserDataDTO>, BadRequest<string>>> GetUserById(int id, IUserLogic userLogic, Serilog.ILogger logger, HttpContext httpContext)
     {
         var requestId = httpContext?.TraceIdentifier ?? "Unknown";
         logger.Information("user-service: GetUserById method called. RequestID: {@requestId}", requestId);
@@ -158,18 +158,12 @@ public class UserEndpoints : ICarterModule
         if (user is null)
             return TypedResults.BadRequest("User with the specified doesn't exist.");
 
-        var ads = await userLogic.GetUsersAdsAsync(id);
-        if (!ads.Any())
-        {
-            var userWithoutAds = new UserDataWithoutAdsDTO(user);
-            return TypedResults.Ok(userWithoutAds);
-        }
-
-        var userData = new UserWithAdsDataDTO(user, ads);
-
-
         //Get all the ads from that user.
-        logger.Information("user-service: Exiting method GetUserById");
+        var ads = userLogic.GetUsersAdsByRPC(id);
+
+        var userData = new UserDataDTO(user, ads);
+        //Get all the ads from that user.
+        logger.Information("user-service: Exiting method ");
 
         return TypedResults.Ok(userData);
     }
@@ -182,18 +176,16 @@ public class UserEndpoints : ICarterModule
     /// <returns>Result of the Delete user by id request.</returns>
     public static async Task<Results<NoContent, BadRequest<string>>> DeleteUserById(int id, IUserLogic userLogic, Serilog.ILogger logger, HttpContext httpContext)
     {
-        var requestId = httpContext?.TraceIdentifier ?? "Unknown";
-        logger.Information("user-service: DeleteUserById method called. RequestID: {@requestId}", requestId);
+        EnteringMethod(nameof(DeleteUserById), logger, httpContext);
 
         var user = await userLogic.GetUserByIdAsync(id);
 
         if (user is null)
             return TypedResults.BadRequest("User with the specified doesn't exist.");
 
-        await userLogic.DeleteUserAsync(user);
+        ExitingMethod(nameof(DeleteUserById), logger);
 
-        logger.Information("user-service: Exiting method DeleteUserById");
-        return TypedResults.NoContent();
+        return await userLogic.DeleteUserAsync(user.UserId) ? TypedResults.NoContent() : TypedResults.BadRequest("Failed to delete the user.");
     }
 
     /// <summary>
@@ -220,10 +212,9 @@ public class UserEndpoints : ICarterModule
             return TypedResults.Conflict("User name is already taken.");
 
         user.UserName = userName;
-        var userData = new UserDataDTO(user);
+        var userData = new UserDataDTO(user, null);
         if (await userLogic.UpdateUserAsync(user))
             return TypedResults.Ok(userData);
-
 
         logger.Information("user-service: Exiting method UpdateUserNameById");
         return TypedResults.BadRequest("Failed to update the user name.");
@@ -234,11 +225,10 @@ public class UserEndpoints : ICarterModule
     /// </summary>
     /// <param name="newUserData">New user data.</param>
     /// <param name="userLogic"><see cref="UserLogic"/> DI.</param>
-    /// <returns><see cref="Results"/>.</returns>
+    /// <returns><see cref="Results"/> for different result types.</returns>
     public static async Task<Results<Ok<string>, BadRequest<string>, Conflict<string>>> UpdateUser(User newUserData, IUserLogic userLogic, Serilog.ILogger logger, HttpContext httpContext)
     {
-        var requestId = httpContext?.TraceIdentifier ?? "Unknown";
-        logger.Information("user-service: UpdateUser method called. RequestID: {@requestId}", requestId);
+        EnteringMethod(nameof(UpdateUser), logger, httpContext);
 
         var existingUser = userLogic.GetUserByIdAsync(newUserData.UserId);
         if (existingUser is null)
@@ -255,69 +245,74 @@ public class UserEndpoints : ICarterModule
         var isUserUpdated = await userLogic.UpdateUserDataAsync(newUserData);
         if (isUserUpdated)
         {
-            var user = await userLogic.GetUserByUsernameOrEmailAndPasswordAsync(newUserData.UserEmail, newUserData.UserPassword);
+            var user = userLogic.GetUserByUsernameOrEmailAndPassword(newUserData.UserEmail, newUserData.UserPassword);
             var jwt = userLogic.GetJwtToken(user);
             return string.IsNullOrEmpty(jwt) ? TypedResults.BadRequest("User has been successfully registered but failed to retrieve the JWT token.") : TypedResults.Ok(jwt);
         }
 
-        logger.Information("user-service: Exiting method UpdateUser");
+        ExitingMethod(nameof(UpdateUser), logger);
         return TypedResults.BadRequest("Failed to update the user.");
     }
 
     /// <summary>
-    /// Get
+    /// Gets all the users from the database.
     /// </summary>
-    /// <param name="userLogic"></param>
-    /// <param name="logger"></param>
-    /// <param name="httpContext"></param>
-    /// <returns></returns>
-    public static async Task<Results<Ok<List<User>>, BadRequest<string>>> GetAllUsers(IUserLogic userLogic, Serilog.ILogger logger, HttpContext httpContext)
+    /// <param name="userLogic"><see cref="IUserLogic"/> dependency injection.</param>
+    /// <param name="logger"><see cref="Serilog.ILogger"/> instance.</param>
+    /// <param name="httpContext"><see cref="HttpContext"/> instance.</param>
+    /// <returns>Data from all of the users.</returns>
+    public static async Task<Results<Ok<List<UserDataDTO>>, BadRequest<string>>> GetAllUsers(IUserLogic userLogic, Serilog.ILogger logger, HttpContext httpContext)
     {
-        var requestId = httpContext?.TraceIdentifier ?? "Unknown";
-        logger.Information("user-service: GetAllUsers method called. RequestID: {@requestId}", requestId);
+        EnteringMethod(nameof(GetAllUsers), logger, httpContext);
 
         var users = await userLogic.GetAllUsersAsync();
-        if (users is null)
-        {
-            logger.Error("user-service: Couldn't find any users.");
-            return TypedResults.BadRequest("Couldn't find any users.");
-        }
 
-        logger.Information("user-service: Exiting method GetAllUsers");
-        return TypedResults.Ok(users);
+        ExitingMethod(nameof(GetAllUsers), logger);
+
+        return users is not null ? TypedResults.Ok(users.ConvertAll(user => new UserDataDTO(user, null))) : TypedResults.BadRequest("Couldn't find any users.");
     }
-
-
 
     /// <summary>
     /// Gets the user by id. User gRPC to get the ads.
     /// </summary>
     /// <param name="id">Id of the user.</param>
     /// <param name="userLogic"><see cref="IUserLogic"/> instance.</param>
+    /// <param name="logger"><see cref="Serilog.ILogger"/> instance.</param>
+    /// <param name="httpContext"><see cref="HttpContext"/> instance.</param>
     /// <returns>User data for the user.</returns>
-    public static async Task<Results<Ok<UserWithAdsDataDTO>, Ok<UserDataWithoutAdsDTO>, BadRequest<string>>> GetUserWithGrpcAdRetrieval(int id, IUserLogic userLogic, Serilog.ILogger logger, HttpContext httpContext)
+    public static async Task<Results<Ok<UserDataDTO>, BadRequest<string>>> GetUserWithGrpcAdRetrieval(int id, IUserLogic userLogic, Serilog.ILogger logger, HttpContext httpContext)
     {
-        var requestId = httpContext?.TraceIdentifier ?? "Unknown";
-        logger.Information("user-service: GetUserById method called. RequestID: {@requestId}", requestId);
+        EnteringMethod(nameof(GetUserWithGrpcAdRetrieval), logger, httpContext);
 
         var user = await userLogic.GetUserByIdAsync(id);
 
         if (user is null)
             return TypedResults.BadRequest("User with the specified doesn't exist.");
 
-        var ads = userLogic.GetUsersAdsByRPC(id);
-        if (!ads.Any())
-        {
-            var userWithoutAds = new UserDataWithoutAdsDTO(user);
-            return TypedResults.Ok(userWithoutAds);
-        }
-
-        var userData = new UserWithAdsDataDTO(user, ads);
-
-
         //Get all the ads from that user.
-        logger.Information("user-service: Exiting method GetUserById");
+        var ads = userLogic.GetUsersAdsByRPC(id);
 
-        return TypedResults.Ok(userData);
+        ExitingMethod(nameof(GetUserWithGrpcAdRetrieval), logger);
+
+        return TypedResults.Ok(new UserDataDTO(user, ads));
     }
+
+    /// <summary>
+    /// Creates an information of entering the method.
+    /// </summary>
+    /// <param name="methodName">Name of the method is being called.</param>
+    /// <param name="logger"><see cref="Serilog.ILogger"/> instance.</param>
+    /// <param name="context"><see cref="HttpContext"/> instance.</param>
+    private static void EnteringMethod(string methodName, Serilog.ILogger logger, HttpContext context)
+    {
+        var requestId = context?.TraceIdentifier ?? "Unknown";
+        logger.Information($"{_name}: {methodName} method called. RequestID: {@requestId}", requestId);
+    }
+
+    /// <summary>
+    /// Creates an information of exiting a method.
+    /// </summary>
+    /// <param name="methodName">Name of the method is being called.</param>
+    /// <param name="logger"><see cref="Serilog.ILogger"/> instance.</param>
+    private static void ExitingMethod(string methodName, Serilog.ILogger logger) => logger.Information($"{_name}: Exiting method {methodName}");
 }

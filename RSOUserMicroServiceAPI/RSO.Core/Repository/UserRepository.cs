@@ -7,21 +7,19 @@ namespace RSO.Core.Repository;
 /// <summary>
 /// Implementation of <see cref="IUserRepository"/>.
 /// </summary>
-public class UserRepository : GenericRepository<User>, IUserRepository
+public class UserRepository(UserServicesRSOContext context) : GenericRepository<User>(context), IUserRepository
 {
-    public UserRepository(UserServicesRSOContext context) : base(context) { }
-
     ///<inheritdoc/>
-    public async Task<bool> UserExistsByUserNameOrEmailOrPasswordAsync(string emailOrUsername, string password) => await _context.User.AnyAsync(u => (u.UserName.Equals(emailOrUsername) || u.UserEmail.Equals(emailOrUsername)) && u.UserPassword.Equals(password));
-
+    public bool TryGetUserByUserNameOrEmailOrPassword(string emailOrUsername, string password, out User? user)
+    {
+        user = _context.User.FirstOrDefault(u => (u.UserName.Equals(emailOrUsername) || u.UserEmail.Equals(emailOrUsername)) && u.UserPassword.Equals(password));
+        return user is not null;
+    }
     ///<inheritdoc/>
     public async Task<bool> UsernameOrEmailAlreadyTakenAsync(string userName, string email) => await _context.User.AnyAsync(u => u.UserName.Equals(userName) || u.UserEmail.Equals(email));
 
     ///<inheritdoc/>
-    public async Task<User> GetByUsernameOrEmailAndPasswordAsync(string emailOrUsername, string password) => await _context.User.Where(u => (u.UserName.Equals(emailOrUsername) || u.UserEmail.Equals(emailOrUsername)) && u.UserPassword.Equals(password)).FirstOrDefaultAsync();
-
-    ///<inheritdoc/>
-    public async Task DeleteUserAsync(User user) => await _context.User.Where(User => User.UserId == user.UserId).ExecuteDeleteAsync();
+    public async Task DeleteUserByIdAsync(int userId) => await _context.User.Where(User => User.UserId == userId).ExecuteDeleteAsync();
 
     ///<inheritdoc/>
     public async Task UpdateUsersNameAsync(User user) => await _context.User.Where(User => User.UserId == user.UserId).ExecuteUpdateAsync(users => users.SetProperty(u => u.UserName, user.UserName));
