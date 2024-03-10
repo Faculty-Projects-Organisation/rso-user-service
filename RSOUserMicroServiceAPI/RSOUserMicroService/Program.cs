@@ -11,6 +11,7 @@ using System.Text;
 using UserServiceRSO.Repository;
 using RSO.Core.Health;
 using Serilog;
+using NSwag.AspNetCore;
 
 #region BUILDER
 var builder = WebApplication.CreateBuilder(args);

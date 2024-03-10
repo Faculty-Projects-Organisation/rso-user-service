@@ -12,7 +12,6 @@ public interface IUserLogic
     /// Gets the city name from the userId zip code.
     /// </summary>
     /// <param name="userZipCode">The userId provided zip code.</param>
-    /// <param name="userZipCode">The userId provided zip code.</param>
     /// <returns>The name of the city.</returns>
     public Task<string?> GetCityFromZipCodeAsync(string userZipCode);
 
