@@ -9,10 +9,7 @@ A microservice dedicated to handling user CRUD operations for the advertisement 
 - [Urbanus98](https://github.com/urbanus98)
 
 ## Docker
-[![Docker Hub](https://img.shields.io/docker/cloud/build/muchacho3alex/rsouserservice)](https://hub.docker.com/r/muchacho3alex/rsouserservice)
-
-## Swagger
-[![API Documentation](https://img.shields.io/badge/API-Documentation-blue)](/userMicroservice/openapi)
+[![Docker Hub](https://img.shields.io/badge/Build-Passing-brightgreen)](https://hub.docker.com/r/muchacho3alex/rsouserservice/tags)
 
 ## Related Repositories
  [![rso-ad-service](https://img.shields.io/badge/GitHub-rso--ad--service-blue)](https://github.com/Faculty-Projects-Organisation/rso-ad-service)
