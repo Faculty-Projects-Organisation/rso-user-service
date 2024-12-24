@@ -1,4 +1,4 @@
-# User Microservice In ASP .NET Core 8 [Cloud computing @ FRI UL]
+# User Microservice In ASP .NET 8 [Cloud computing @ FRI UL]
 
 ![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen)
 
