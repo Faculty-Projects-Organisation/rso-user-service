@@ -6,24 +6,18 @@ namespace UserServiceRSO.Repository;
 /// <summary>
 /// Implements the <see cref="IUnitOfWork"/> interface.
 /// </summary>
-public class UnitOfWork : IUnitOfWork
+/// <remarks>
+/// Constructor for the <see cref="UnitOfWork"/> class.
+/// </remarks>
+/// <param name="adServicesRSOContext ">The <see cref="userServicesRSOContext "/> context for the database access.</param>
+/// <param name="userRepository">IUserRepository instance.</param>
+public class UnitOfWork(UserServicesRSOContext adServicesRSOContext, IUserRepository userRepository) : IUnitOfWork
 {
-    private readonly UserServicesRSOContext _userServicesContext;
+    private readonly UserServicesRSOContext _userServicesContext = adServicesRSOContext;
     private bool disposed;
 
-    /// <summary>
-    /// Constructor for the <see cref="UnitOfWork"/> class.
-    /// </summary>
-    /// <param name="adServicesRSOContext ">The <see cref="userServicesRSOContext "/> context for the database access.</param>
-    /// <param name="userRepository">IUserRepository instance.</param>
-    public UnitOfWork(UserServicesRSOContext adServicesRSOContext, IUserRepository userRepository)
-    {
-        _userServicesContext = adServicesRSOContext;
-        UserRepository = userRepository;
-    }
-
     ///<inheritdoc/>
-    public IUserRepository UserRepository { get; }
+    public IUserRepository UserRepository { get; } = userRepository;
 
     ///<inheritdoc/>
     public async Task<int> SaveChangesAsync() => await _userServicesContext.SaveChangesAsync();

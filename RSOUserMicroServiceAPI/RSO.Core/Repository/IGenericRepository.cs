@@ -24,14 +24,14 @@ public interface IGenericRepository<T> where T : class
     /// <summary>
     /// Gets many enumerators for a database type based on a condition.
     /// </summary>
-    /// <param name="filter"></param>
-    /// <param name="orderBy"></param>
-    /// <param name="top"></param>
-    /// <param name="skip"></param>
-    /// <param name="includeProperties"></param>
-    /// <returns></returns>
-    public Task<IEnumerable<T>> GetManyAsync(Expression<Func<T, bool>> filter = null,
-                              Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+    /// <param name="filter">The expression filter predicate.</param>
+    /// <param name="orderBy">The order by predicate.</param>
+    /// <param name="top">The number of enteties to take.</param>
+    /// <param name="skip">The number of enteties to skip.</param>
+    /// <param name="includeProperties">Additional properties from other entities that user the primary-foreign key relation.</param>
+    /// <returns>An IEnumerable of type <see cref="T"/> based on the provided filters.</returns>
+    public Task<IEnumerable<T>> GetManyAsync(Expression<Func<T, bool>>? filter = null,
+                              Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
                               int? top = null,
                               int? skip = null,
                               params string[] includeProperties);

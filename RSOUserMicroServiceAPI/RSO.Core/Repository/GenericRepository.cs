@@ -39,7 +39,7 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
     }
 
     /// <inheritdoc/>
-    public async Task<IEnumerable<T>> GetManyAsync(Expression<Func<T, bool>> filter = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, int? top = null, int? skip = null, params string[] includeProperties)
+    public async Task<IEnumerable<T>> GetManyAsync(Expression<Func<T, bool>>? filter = null, Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null, int? top = null, int? skip = null, params string[] includeProperties)
     {
         IQueryable<T> query = _context.Set<T>();
 
