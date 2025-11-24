@@ -22,10 +22,14 @@ public class UserEndpoints : ICarterModule
         var group = app.MapGroup("/users/api/");
 
         // Login and register options.
-        group.MapPost("/login", Login).WithName(nameof(Login)).
-            Produces(StatusCodes.Status200OK).WithDisplayName("Lol").
-            Produces(StatusCodes.Status400BadRequest).
-            AllowAnonymous().WithTags("Users");
+        group.MapPost("/login", Login)
+            .WithName(nameof(Login))
+            .Produces(StatusCodes.Status200OK)
+            .WithDisplayName("Lol")
+            .Produces(StatusCodes.Status400BadRequest)
+            .AllowAnonymous()
+            .WithOpenApi()
+            .WithTags("Users");
 
         group.MapPost("/register", Register).WithName(nameof(Register)).
             Produces(StatusCodes.Status201Created).

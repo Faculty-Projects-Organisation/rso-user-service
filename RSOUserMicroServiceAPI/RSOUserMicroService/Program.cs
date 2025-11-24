@@ -11,9 +11,8 @@ using System.Text;
 using UserServiceRSO.Repository;
 using RSO.Core.Health;
 using Serilog;
-using NSwag.AspNetCore;
+using Scalar.AspNetCore;
 
-#region BUILDER
 var builder = WebApplication.CreateBuilder(args);
 
 // Register the IOptions object.
@@ -60,39 +59,32 @@ builder.Services
         };
     });
 
-//Carter
+builder.Services.AddControllers();
+
 builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddCarter();
-// Add services to the container.
+
 builder.Services.AddAuthorization();
+
 builder.Services.AddEndpointsApiExplorer();
-//Open API / Swagger
-builder.Services.AddOpenApiDocument(options =>
-{
-    options.PostProcess = document =>
-    {
-        document.Info = new()
-        {
-            Version = "v1",
-            Title = "User microservices API",
-            Description = "User microservices API endpoints",
-            TermsOfService = "Lol.",
-            Contact = new()
-            {
-                Name = "Aleksander Kovac & Urban Poljsak",
-                Url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-            }
-        };
-    };
-    options.UseControllerSummaryAsTagDescription = true;
-});
+
+builder.Services.AddOpenApi();
 
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
-#endregion
 
-#region APP
+
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.MapScalarApiReference();
+}
+
+
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
@@ -100,15 +92,10 @@ app.UseRouting();
 app.MapCarter();
 // OPENAPI SWAGGER
 app.UseOpenApi();
-app.UseSwaggerUi3(options =>
-{
-    options.Path = "/userMicroservice/openapi";
-    options.TagsSorter = "Users";
-});
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseSerilogRequestLogging();
 
 app.Run();
-#endregion
